@@ -1,0 +1,43 @@
+{
+  "name": "@chronoqueue/client",
+  "version": "0.1.0",
+  "description": "ChronoQueue SDK Client sub-package",
+  "main": "lib/index.js",
+  "types": "./lib/index.d.ts",
+  "scripts": {},
+  "keywords": [
+    "chronoqueue",
+    "client"
+  ],
+  "author": "ChronoQueue Team",
+  "license": "MIT",
+  "dependencies": {
+    "@grpc/grpc-js": "^1.12.4",
+    "@chronoqueue/proto": "workspace:*",
+    "long": "^5.2.3",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/uuid": "^9.0.7",
+    "protobufjs": "^7.2.5"
+  },
+  "bugs": {
+    "url": "https://github.com/adrien19/chronoqueue-typescript-sdk/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adrien19/chronoqueue-typescript-sdk.git",
+    "directory": "packages/client"
+  },
+  "homepage": "https://github.com/adrien19/chronoqueue-typescript-sdk/tree/main/packages/client",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "src",
+    "lib"
+  ],
+  "engines": {
+    "node": ">= 18.0.0"
+  }
+}

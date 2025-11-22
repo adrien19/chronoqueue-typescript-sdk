@@ -1,0 +1,54 @@
+{
+  "name": "@chronoqueue/proto",
+  "version": "0.1.0",
+  "description": "ChronoQueue SDK compiled protobuf definitions",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib/"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf lib src/generated",
+    "gen": "tsx ./scripts/compile-proto.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "keywords": [
+    "chronoqueue"
+  ],
+  "author": "ChronoQueue Team",
+  "license": "MIT",
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.10.1",
+    "@grpc/grpc-js": "^1.12.4",
+    "long": "^5.2.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.10.8",
+    "glob": "^10.3.10",
+    "jest": "^29.7.0",
+    "protoc": "^33.1.0",
+    "ts-jest": "^29.1.0",
+    "ts-proto": "^2.8.3",
+    "tsx": "^4.7.0",
+    "typescript": "^5.6.3"
+  },
+  "bugs": {
+    "url": "https://github.com/adrien19/chronoqueue-typescript-sdk/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adrien19/chronoqueue-typescript-sdk.git",
+    "directory": "packages/proto"
+  },
+  "homepage": "https://github.com/adrien19/chronoqueue-typescript-sdk/tree/main/packages/proto",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">= 18.0.0"
+  }
+}
