@@ -1,8 +1,8 @@
 {
-    "files": [],
-    "references": [
-        {
-            "path": "./packages/proto"
-        }
-    ]
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/proto"
+    }
+  ]
 }

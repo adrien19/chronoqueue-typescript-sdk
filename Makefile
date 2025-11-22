@@ -146,7 +146,7 @@ test-all: test-proto test-client
 test-coverage:
 	@echo "$(YELLOW)Running tests with coverage...$(NC)"
 	@cd $(PROTO_PKG) && $(PNPM) run test:coverage
-	@if [ -f "$(CLIENT_PKG)/package.json" ]; then \
+	@if [ -f "$(CLIENT_PKG)/package.json" ] && grep -q '"test:coverage"' "$(CLIENT_PKG)/package.json"; then \
 		cd $(CLIENT_PKG) && $(PNPM) run test:coverage; \
 	else \
 		echo "$(YELLOW)Client package not yet implemented, skipping coverage$(NC)"; \

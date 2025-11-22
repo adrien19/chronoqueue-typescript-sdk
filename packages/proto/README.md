@@ -68,7 +68,7 @@ const message = Message.create({
       JSON.stringify({
         task: "process-image",
         imageId: "12345",
-      })
+      }),
     ),
     contentType: "application/json",
     metadata: {
@@ -142,7 +142,7 @@ const client = new grpc.Client(
         },
       ],
     }),
-  }
+  },
 );
 
 // Service definition is available for implementing clients
