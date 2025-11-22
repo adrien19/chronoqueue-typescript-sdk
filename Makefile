@@ -85,16 +85,15 @@ check-proto:
 
 # Generate TypeScript code from proto files using ts-proto
 gen-proto: check-proto
-	@echo "$(YELLOW)Checking for protoc and ts-proto...$(NC)"
-	@if ! [ -x ./node_modules/.bin/protoc ]; then \
-		echo "$(YELLOW)protoc not found, installing...$(NC)"; \
-		cd $(PROTO_PKG) && $(PNPM) add -D protoc; \
-	fi
-	@if ! [ -x ./node_modules/.bin/protoc-gen-ts_proto ]; then \
-		echo "$(YELLOW)ts-proto not found, installing...$(NC)"; \
-		cd $(PROTO_PKG) && $(PNPM) add -D ts-proto; \
-	fi
 	@echo "$(YELLOW)Generating TypeScript code from proto files using ts-proto...$(NC)"
+	@if ! [ -x $(PROTO_PKG)/node_modules/.bin/protoc ]; then \
+		echo "$(RED)Error: protoc not found. Run 'pnpm install' first.$(NC)"; \
+		exit 1; \
+	fi
+	@if ! [ -x $(PROTO_PKG)/node_modules/.bin/protoc-gen-ts_proto ]; then \
+		echo "$(RED)Error: ts-proto not found. Run 'pnpm install' first.$(NC)"; \
+		exit 1; \
+	fi
 	@rm -rf $(PROTO_OUT)
 	@mkdir -p $(PROTO_OUT)
 	@cd $(PROTO_PKG) && ./node_modules/.bin/protoc \
