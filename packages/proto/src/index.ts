@@ -1,0 +1,21 @@
+/**
+ * @chronoqueue/proto
+ *
+ * Internal package containing compiled protobuf definitions for ChronoQueue.
+ * This package is not intended for direct use by external applications.
+ * Use @chronoqueue/client instead.
+ */
+
+// Export all generated proto types with namespaces to avoid conflicts
+export * as Common from "./generated/proto/common/v1/common";
+export * as Message from "./generated/proto/message/v1/message";
+export * as Queue from "./generated/proto/queue/v1/queue";
+export * as QueueServiceTypes from "./generated/proto/queueservice/v1/request_response";
+export * as QueueService from "./generated/proto/queueservice/v1/service";
+export * as Schedule from "./generated/proto/schedule/v1/schedule";
+export * as Schema from "./generated/proto/schema/v1/schema";
+
+// Re-export Google API annotations
+export * as GoogleApiAnnotations from "./generated/proto/google/api/annotations";
+export * as GoogleApiFieldBehavior from "./generated/proto/google/api/field_behavior";
+export * as GoogleApiHttp from "./generated/proto/google/api/http";

@@ -1,0 +1,282 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "*-release"
+      - "*-beta"
+  workflow_dispatch:
+    inputs:
+      package:
+        description: "Package to publish (proto, client, or all)"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - proto
+          - client
+      tag:
+        description: "npm tag to publish under (latest, next, beta, etc.)"
+        required: true
+        default: "latest"
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  validate:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      packages: ${{ steps.packages.outputs.packages }}
+      npm-tag: ${{ steps.npm-tag.outputs.npm-tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download proto definitions
+        run: make update-proto
+
+      - name: Generate proto code
+        run: make gen-proto
+
+      - name: Run linting
+        run: pnpm run lint.check
+
+      - name: Run type checking
+        run: pnpm exec tsc --build --force
+
+      - name: Run tests
+        run: make test-all
+
+      - name: Build packages
+        run: make build-all
+
+      - name: Extract version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+            # Extract version by removing -release or -beta suffix
+            VERSION=$(echo "$TAG_NAME" | sed 's/-release$//' | sed 's/-beta$//')
+          else
+            VERSION=$(node -p "require('./packages/proto/package.json').version")
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Determine packages to publish
+        id: packages
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PACKAGES="${{ github.event.inputs.package }}"
+          else
+            PACKAGES="all"
+          fi
+          echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
+          echo "Packages: $PACKAGES"
+
+      - name: Determine npm dist-tag
+        id: npm-tag
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+            if [[ "$TAG_NAME" == *-beta ]]; then
+              NPM_TAG="beta"
+            else
+              NPM_TAG="latest"
+            fi
+          else
+            NPM_TAG="${{ github.event.inputs.tag }}"
+          fi
+          echo "npm-tag=$NPM_TAG" >> $GITHUB_OUTPUT
+          echo "NPM dist-tag: $NPM_TAG"
+
+  publish-proto:
+    name: Publish Proto Package
+    runs-on: ubuntu-latest
+    needs: validate
+    if: needs.validate.outputs.packages == 'all' || needs.validate.outputs.packages == 'proto'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download proto definitions
+        run: make update-proto
+
+      - name: Generate proto code
+        run: make gen-proto
+
+      - name: Update package version
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        working-directory: packages/proto
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          npm version $VERSION --no-git-tag-version --allow-same-version
+          echo "Updated @chronoqueue/proto to version $VERSION"
+
+      - name: Build proto package
+        run: make build-proto
+
+      - name: Publish to npm
+        working-directory: packages/proto
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          TAG="${{ needs.validate.outputs.npm-tag }}"
+          echo "Publishing @chronoqueue/proto with tag: $TAG"
+          pnpm publish --access public --tag $TAG --no-git-checks
+
+      - name: Create GitHub Release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          name: "@chronoqueue/proto v${{ needs.validate.outputs.version }}"
+          body: |
+            ## @chronoqueue/proto v${{ needs.validate.outputs.version }}
+
+            Published proto package to npm.
+
+            ### Installation
+            ```bash
+            npm install @chronoqueue/proto@${{ needs.validate.outputs.version }}
+            ```
+          draft: false
+          prerelease: false
+
+  publish-client:
+    name: Publish Client Package
+    runs-on: ubuntu-latest
+    needs: [validate, publish-proto]
+    if: |
+      always() &&
+      (needs.validate.outputs.packages == 'all' || needs.validate.outputs.packages == 'client') &&
+      (needs.publish-proto.result == 'success' || needs.publish-proto.result == 'skipped')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download proto definitions
+        run: make update-proto
+
+      - name: Generate proto code
+        run: make gen-proto
+
+      - name: Update package version
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        working-directory: packages/client
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          npm version $VERSION --no-git-tag-version --allow-same-version
+          echo "Updated @chronoqueue/client to version $VERSION"
+
+      - name: Build all packages
+        run: make build-all
+
+      - name: Publish to npm
+        working-directory: packages/client
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          TAG="${{ needs.validate.outputs.npm-tag }}"
+          echo "Publishing @chronoqueue/client with tag: $TAG"
+          pnpm publish --access public --tag $TAG --no-git-checks
+
+      - name: Create GitHub Release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          name: "@chronoqueue/client v${{ needs.validate.outputs.version }}"
+          body: |
+            ## @chronoqueue/client v${{ needs.validate.outputs.version }}
+
+            Published client package to npm.
+
+            ### Installation
+            ```bash
+            npm install @chronoqueue/client@${{ needs.validate.outputs.version }}
+            ```
+          draft: false
+          prerelease: false
+
+  release-success:
+    name: Release Success
+    runs-on: ubuntu-latest
+    needs: [validate, publish-proto, publish-client]
+    if: always()
+    steps:
+      - name: Check release status
+        run: |
+          echo "Validate: ${{ needs.validate.result }}"
+          echo "Publish Proto: ${{ needs.publish-proto.result }}"
+          echo "Publish Client: ${{ needs.publish-client.result }}"
+
+          if [ "${{ needs.validate.result }}" != "success" ]; then
+            echo "Validation failed"
+            exit 1
+          fi
+
+          PACKAGES="${{ needs.validate.outputs.packages }}"
+
+          if [ "$PACKAGES" = "all" ] || [ "$PACKAGES" = "proto" ]; then
+            if [ "${{ needs.publish-proto.result }}" != "success" ]; then
+              echo "Proto package publish failed"
+              exit 1
+            fi
+          fi
+
+          if [ "$PACKAGES" = "all" ] || [ "$PACKAGES" = "client" ]; then
+            if [ "${{ needs.publish-client.result }}" != "success" ]; then
+              echo "Client package publish failed"
+              exit 1
+            fi
+          fi
+
+          echo "Release completed successfully"
