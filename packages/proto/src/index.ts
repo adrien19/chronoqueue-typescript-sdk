@@ -19,3 +19,7 @@ export * as Schema from "./generated/proto/schema/v1/schema";
 export * as GoogleApiAnnotations from "./generated/proto/google/api/annotations";
 export * as GoogleApiFieldBehavior from "./generated/proto/google/api/field_behavior";
 export * as GoogleApiHttp from "./generated/proto/google/api/http";
+
+// Re-export Google protobuf types
+export type { Duration } from "./generated/google/protobuf/duration";
+export type { Timestamp } from "./generated/google/protobuf/timestamp";

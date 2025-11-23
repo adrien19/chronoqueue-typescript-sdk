@@ -197,6 +197,9 @@ jobs:
       - name: Generate proto code
         run: make gen-proto
 
+      - name: Build proto package
+        run: pnpm --filter @chronoqueue/proto... build
+
       - name: Run tests with coverage
         run: make test-coverage
 

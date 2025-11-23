@@ -220,7 +220,7 @@ lint:
 # Format code
 format:
 	@echo "$(YELLOW)Formatting code with Prettier...$(NC)"
-	@$(PRETTIER) --write "packages/*/src/**/*.ts"
+	@$(PNPM) run format
 	@echo "$(GREEN)Formatting complete!$(NC)"
 
 
