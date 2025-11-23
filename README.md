@@ -95,7 +95,7 @@ if (message) {
     "checkout-orders",
     message.messageId,
     ProtoMessage.Message_Metadata_State.PROCESSED,
-    streamEntryId
+    streamEntryId,
   );
 }
 await client.disconnect();
