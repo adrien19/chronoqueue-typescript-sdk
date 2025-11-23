@@ -44,7 +44,7 @@ await client.schemas.registerSchema(
       totalAmount: { type: "number" },
     },
   }),
-  { name: "Store Cart Schema", contentType: "json-schema" }
+  { name: "Store Cart Schema", contentType: "json-schema" },
 );
 
 // Post a validated message
@@ -79,7 +79,7 @@ if (message) {
     "checkout-orders",
     message.messageId,
     1, // PROCESSED
-    streamEntryId
+    streamEntryId,
   );
 }
 await client.disconnect();
@@ -206,7 +206,7 @@ await client.schemas.registerSchema(
       totalAmount: { type: "number" },
     },
   }),
-  { name: "Store Cart Schema", contentType: "json-schema" }
+  { name: "Store Cart Schema", contentType: "json-schema" },
 );
 
 // List schemas
@@ -253,7 +253,7 @@ const client = new ChronoQueueClient({
     credentials: grpc.credentials.createSsl(
       fs.readFileSync("ca.pem"),
       fs.readFileSync("client-key.pem"),
-      fs.readFileSync("client-cert.pem")
+      fs.readFileSync("client-cert.pem"),
     ),
 
     // Optional: gRPC channel options

@@ -1,184 +1,184 @@
-import { QueueServiceTypes } from '@chronoqueue/proto';
-import { Connection } from '../src/connection';
-import { SchemaClient } from '../src/schema';
+import { QueueServiceTypes } from "@chronoqueue/proto";
+import { Connection } from "../src/connection";
+import { SchemaClient } from "../src/schema";
 
+describe("SchemaClient", () => {
+  let schemaClient: SchemaClient;
+  let mockConnection: jest.Mocked<Connection>;
+  let mockQueueServiceClient: any;
 
-describe('SchemaClient', () => {
-    let schemaClient: SchemaClient;
-    let mockConnection: jest.Mocked<Connection>;
-    let mockQueueServiceClient: any;
+  beforeEach(() => {
+    mockQueueServiceClient = {
+      registerSchema: jest.fn(),
+      getSchema: jest.fn(),
+      listSchemas: jest.fn(),
+      deleteSchema: jest.fn(),
+    };
 
-    beforeEach(() => {
-        mockQueueServiceClient = {
-            registerSchema: jest.fn(),
-            getSchema: jest.fn(),
-            listSchemas: jest.fn(),
-            deleteSchema: jest.fn(),
-        };
+    mockConnection = {
+      getQueueServiceClient: jest.fn().mockReturnValue(mockQueueServiceClient),
+    } as any;
 
-        mockConnection = {
-            getQueueServiceClient: jest.fn().mockReturnValue(mockQueueServiceClient),
-        } as any;
+    schemaClient = new SchemaClient(mockConnection);
+  });
 
-        schemaClient = new SchemaClient(mockConnection);
+  describe("registerSchema", () => {
+    it("should register a new schema", async () => {
+      const schemaId = "test-schema";
+      const content = '{"type": "object"}';
+      const mockResponse: QueueServiceTypes.RegisterSchemaResponse = {
+        schemaId,
+        version: 1,
+        createdAt: "2024-01-01T00:00:00Z",
+      };
+
+      mockQueueServiceClient.registerSchema.mockImplementation(
+        (_req: any, callback: any) => callback(null, mockResponse),
+      );
+
+      const result = await schemaClient.registerSchema(schemaId, content, {
+        name: "Test Schema",
+        description: "A test schema",
+      });
+
+      expect(result).toEqual(mockResponse);
+      expect(mockQueueServiceClient.registerSchema).toHaveBeenCalledWith(
+        expect.objectContaining({
+          schemaId,
+          content,
+          name: "Test Schema",
+          description: "A test schema",
+          contentType: "json-schema",
+        }),
+        expect.any(Function),
+      );
     });
 
-    describe('registerSchema', () => {
-        it('should register a new schema', async () => {
-            const schemaId = 'test-schema';
-            const content = '{"type": "object"}';
-            const mockResponse: QueueServiceTypes.RegisterSchemaResponse = {
-                schemaId,
-                version: 1,
-                createdAt: '2024-01-01T00:00:00Z',
-            };
-
-            mockQueueServiceClient.registerSchema.mockImplementation(
-                (_req: any, callback: any) => callback(null, mockResponse)
-            );
-
-            const result = await schemaClient.registerSchema(schemaId, content, {
-                name: 'Test Schema',
-                description: 'A test schema',
-            });
-
-            expect(result).toEqual(mockResponse);
-            expect(mockQueueServiceClient.registerSchema).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    schemaId,
-                    content,
-                    name: 'Test Schema',
-                    description: 'A test schema',
-                    contentType: 'json-schema',
-                }),
-                expect.any(Function)
-            );
-        });
-
-        it('should throw error if schemaId is missing', async () => {
-            await expect(
-                schemaClient.registerSchema('', '{}')
-            ).rejects.toThrow('schemaId is required');
-        });
-
-        it('should throw error if content is missing', async () => {
-            await expect(
-                schemaClient.registerSchema('test-schema', '')
-            ).rejects.toThrow('content is required');
-        });
+    it("should throw error if schemaId is missing", async () => {
+      await expect(schemaClient.registerSchema("", "{}")).rejects.toThrow(
+        "schemaId is required",
+      );
     });
 
-    describe('getSchema', () => {
-        it('should get a specific schema version', async () => {
-            const mockSchema = {
-                schemaId: 'test-schema',
-                version: 1,
-                name: 'Test Schema',
-                description: 'Test',
-                content: '{"type": "object"}',
-                contentType: 'json-schema',
-                createdAt: '2024-01-01T00:00:00Z',
-                updatedAt: '2024-01-01T00:00:00Z',
-                isActive: true,
-                metadata: {},
-            };
+    it("should throw error if content is missing", async () => {
+      await expect(
+        schemaClient.registerSchema("test-schema", ""),
+      ).rejects.toThrow("content is required");
+    });
+  });
 
-            mockQueueServiceClient.getSchema.mockImplementation(
-                (_req: any, callback: any) => callback(null, { schema: mockSchema })
-            );
+  describe("getSchema", () => {
+    it("should get a specific schema version", async () => {
+      const mockSchema = {
+        schemaId: "test-schema",
+        version: 1,
+        name: "Test Schema",
+        description: "Test",
+        content: '{"type": "object"}',
+        contentType: "json-schema",
+        createdAt: "2024-01-01T00:00:00Z",
+        updatedAt: "2024-01-01T00:00:00Z",
+        isActive: true,
+        metadata: {},
+      };
 
-            const result = await schemaClient.getSchema('test-schema', 1);
+      mockQueueServiceClient.getSchema.mockImplementation(
+        (_req: any, callback: any) => callback(null, { schema: mockSchema }),
+      );
 
-            expect(result).toEqual(mockSchema);
-            expect(mockQueueServiceClient.getSchema).toHaveBeenCalledWith(
-                { schemaId: 'test-schema', version: 1 },
-                expect.any(Function)
-            );
-        });
+      const result = await schemaClient.getSchema("test-schema", 1);
 
-        it('should get latest version when version not specified', async () => {
-            mockQueueServiceClient.getSchema.mockImplementation(
-                (_req: any, callback: any) => callback(null, { schema: null })
-            );
-
-            await schemaClient.getSchema('test-schema');
-
-            expect(mockQueueServiceClient.getSchema).toHaveBeenCalledWith(
-                { schemaId: 'test-schema', version: 0 },
-                expect.any(Function)
-            );
-        });
+      expect(result).toEqual(mockSchema);
+      expect(mockQueueServiceClient.getSchema).toHaveBeenCalledWith(
+        { schemaId: "test-schema", version: 1 },
+        expect.any(Function),
+      );
     });
 
-    describe('listSchemas', () => {
-        it('should list all schemas', async () => {
-            const mockSchemas: QueueServiceTypes.SchemaInfo[] = [
-                {
-                    schemaId: 'schema-1',
-                    latestVersion: 2,
-                    name: 'Schema 1',
-                    description: 'First schema',
-                    createdAt: '2024-01-01T00:00:00Z',
-                    updatedAt: '2024-01-01T00:00:00Z',
-                    versionCount: 2,
-                    isActive: true,
-                },
-            ];
+    it("should get latest version when version not specified", async () => {
+      mockQueueServiceClient.getSchema.mockImplementation(
+        (_req: any, callback: any) => callback(null, { schema: null }),
+      );
 
-            mockQueueServiceClient.listSchemas.mockImplementation(
-                (_req: any, callback: any) =>
-                    callback(null, { schemas: mockSchemas, totalCount: 1 })
-            );
+      await schemaClient.getSchema("test-schema");
 
-            const result = await schemaClient.listSchemas();
+      expect(mockQueueServiceClient.getSchema).toHaveBeenCalledWith(
+        { schemaId: "test-schema", version: 0 },
+        expect.any(Function),
+      );
+    });
+  });
 
-            expect(result).toEqual(mockSchemas);
-            expect(mockQueueServiceClient.listSchemas).toHaveBeenCalledWith(
-                { prefix: '', limit: 100, activeOnly: false },
-                expect.any(Function)
-            );
-        });
+  describe("listSchemas", () => {
+    it("should list all schemas", async () => {
+      const mockSchemas: QueueServiceTypes.SchemaInfo[] = [
+        {
+          schemaId: "schema-1",
+          latestVersion: 2,
+          name: "Schema 1",
+          description: "First schema",
+          createdAt: "2024-01-01T00:00:00Z",
+          updatedAt: "2024-01-01T00:00:00Z",
+          versionCount: 2,
+          isActive: true,
+        },
+      ];
 
-        it('should filter by prefix', async () => {
-            mockQueueServiceClient.listSchemas.mockImplementation(
-                (_req: any, callback: any) => callback(null, { schemas: [], totalCount: 0 })
-            );
+      mockQueueServiceClient.listSchemas.mockImplementation(
+        (_req: any, callback: any) =>
+          callback(null, { schemas: mockSchemas, totalCount: 1 }),
+      );
 
-            await schemaClient.listSchemas({ prefix: 'user-' });
+      const result = await schemaClient.listSchemas();
 
-            expect(mockQueueServiceClient.listSchemas).toHaveBeenCalledWith(
-                { prefix: 'user-', limit: 100, activeOnly: false },
-                expect.any(Function)
-            );
-        });
+      expect(result).toEqual(mockSchemas);
+      expect(mockQueueServiceClient.listSchemas).toHaveBeenCalledWith(
+        { prefix: "", limit: 100, activeOnly: false },
+        expect.any(Function),
+      );
     });
 
-    describe('deleteSchema', () => {
-        it('should delete a specific schema version', async () => {
-            mockQueueServiceClient.deleteSchema.mockImplementation(
-                (_req: any, callback: any) => callback(null, { success: true })
-            );
+    it("should filter by prefix", async () => {
+      mockQueueServiceClient.listSchemas.mockImplementation(
+        (_req: any, callback: any) =>
+          callback(null, { schemas: [], totalCount: 0 }),
+      );
 
-            const result = await schemaClient.deleteSchema('test-schema', 1);
+      await schemaClient.listSchemas({ prefix: "user-" });
 
-            expect(result).toBe(true);
-            expect(mockQueueServiceClient.deleteSchema).toHaveBeenCalledWith(
-                { schemaId: 'test-schema', version: 1 },
-                expect.any(Function)
-            );
-        });
-
-        it('should delete all versions when version not specified', async () => {
-            mockQueueServiceClient.deleteSchema.mockImplementation(
-                (_req: any, callback: any) => callback(null, { success: true })
-            );
-
-            await schemaClient.deleteSchema('test-schema');
-
-            expect(mockQueueServiceClient.deleteSchema).toHaveBeenCalledWith(
-                { schemaId: 'test-schema', version: 0 },
-                expect.any(Function)
-            );
-        });
+      expect(mockQueueServiceClient.listSchemas).toHaveBeenCalledWith(
+        { prefix: "user-", limit: 100, activeOnly: false },
+        expect.any(Function),
+      );
     });
+  });
+
+  describe("deleteSchema", () => {
+    it("should delete a specific schema version", async () => {
+      mockQueueServiceClient.deleteSchema.mockImplementation(
+        (_req: any, callback: any) => callback(null, { success: true }),
+      );
+
+      const result = await schemaClient.deleteSchema("test-schema", 1);
+
+      expect(result).toBe(true);
+      expect(mockQueueServiceClient.deleteSchema).toHaveBeenCalledWith(
+        { schemaId: "test-schema", version: 1 },
+        expect.any(Function),
+      );
+    });
+
+    it("should delete all versions when version not specified", async () => {
+      mockQueueServiceClient.deleteSchema.mockImplementation(
+        (_req: any, callback: any) => callback(null, { success: true }),
+      );
+
+      await schemaClient.deleteSchema("test-schema");
+
+      expect(mockQueueServiceClient.deleteSchema).toHaveBeenCalledWith(
+        { schemaId: "test-schema", version: 0 },
+        expect.any(Function),
+      );
+    });
+  });
 });

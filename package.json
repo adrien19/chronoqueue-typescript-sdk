@@ -32,7 +32,7 @@
     "lint": "eslint packages/*/src --ext .ts --no-error-on-unmatched-pattern --fix && prettier --write .",
     "lint.check": "eslint packages/*/src --ext .ts --no-error-on-unmatched-pattern && prettier --end-of-line auto --check .",
     "lint.prune": "ts-prune --error -p tsconfig.prune.json --ignore \"used in module\" --skip \".d.ts\"",
-    "format": "prettier --write .",
+    "format": "pnpm prettier --write .",
     "clean": "node ./scripts/clean.mjs",
     "docs": "cd packages/docs && pnpm run maybe-install-deps-and-build-docs"
   },
