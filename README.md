@@ -9,12 +9,14 @@ A TypeScript SDK for interacting with ChronoQueue, a distributed task scheduling
 
 This is a monorepo containing the following packages:
 
-- **[@chronoqueue/proto](./packages/proto)** - Protocol Buffer definitions and generated TypeScript types
-- **[@chronoqueue/client](./packages/client)** - High-level client SDK for interacting with ChronoQueue (coming soon)
+- **[@chronoqueue/proto](./packages/proto)** – Protocol Buffer definitions and generated TypeScript types
+- **[@chronoqueue/client](./packages/client)** – High-level TypeScript/Node.js client SDK for interacting with ChronoQueue (queues, messages, schedules, schemas, and more)
 
 ## 🚀 Quick Start
 
 ### Installation
+
+#### Proto Package
 
 ```bash
 npm install @chronoqueue/proto
@@ -24,30 +26,82 @@ pnpm add @chronoqueue/proto
 yarn add @chronoqueue/proto
 ```
 
+#### Client SDK
+
+```bash
+npm install @chronoqueue/client
+# or
+pnpm add @chronoqueue/client
+# or
+yarn add @chronoqueue/client
+```
+
 ### Basic Usage
+
+#### Using the Proto Package
 
 ```typescript
 import { Queue, Message, Payload } from "@chronoqueue/proto";
+// ...existing code...
+```
+
+#### Using the Client SDK
+
+```typescript
+import { ChronoQueueClient, ProtoMessage } from "@chronoqueue/client";
+
+const client = new ChronoQueueClient({
+  connection: { address: "localhost:9000" },
+});
+await client.connect();
 
 // Create a queue
-const queue = Queue.create({
-  id: "my-queue",
-  name: "My Task Queue",
-  description: "Processing background tasks",
-  queueType: Queue_QueueType.STANDARD,
-  fairnessPolicy: Queue_FairnessPolicy.FIFO,
+await client.queues.createQueue("checkout-orders", {
+  type: "SIMPLE",
+  maxAttempts: 3,
+  leaseDuration: { seconds: "300", nanos: 0 },
+  autoCreateDlq: true,
 });
 
-// Create a message
-const message = Message.create({
-  id: "msg-123",
-  queueId: "my-queue",
-  payload: Payload.create({
-    data: Buffer.from(JSON.stringify({ task: "process-data" })),
-    contentType: "application/json",
-  }),
+// Post a message
+await client.messages.postMessage("checkout-orders", {
+  messageId: "order-123",
+  metadata: {
+    payload: {
+      data: {
+        cartId: "cart-abc123",
+        userId: "user-456",
+        items: [],
+        totalAmount: 999.99,
+      },
+      contentType: "application/json",
+      schemaId: "store-cart.v1",
+      schemaVersion: 1,
+    },
+    priority: 5,
+    maxAttempts: 3,
+    state: ProtoMessage.Message_Metadata_State.PENDING,
+  },
 });
+
+// Get next message
+const { message, streamEntryId } =
+  await client.messages.getNextMessage("checkout-orders");
+if (message) {
+  // Process message
+  console.log("Processing:", message.metadata?.payload?.data);
+  // Acknowledge
+  await client.messages.acknowledgeMessage(
+    "checkout-orders",
+    message.messageId,
+    ProtoMessage.Message_Metadata_State.PROCESSED,
+    streamEntryId
+  );
+}
+await client.disconnect();
 ```
+
+See [`packages/client/README.md`](./packages/client/README.md) for full usage, advanced features, and API reference.
 
 ## 🛠️ Development
 
@@ -114,7 +168,7 @@ make help
 chronoqueue-typescript-sdk/
 ├── packages/
 │   ├── proto/           # Protocol Buffer definitions
-│   └── client/          # Client SDK (coming soon)
+│   └── client/          # Client SDK
 ├── proto/               # Raw .proto files
 ├── .github/
 │   └── workflows/       # CI/CD workflows
@@ -133,14 +187,15 @@ The `@chronoqueue/proto` package contains:
 - **Message encoding/decoding** utilities
 - **Type-safe interfaces** for all ChronoQueue entities
 
-### Client Package (Coming Soon)
+### Client Package
 
-The `@chronoqueue/client` package will provide:
+The `@chronoqueue/client` package provides:
 
-- High-level client for queue operations
-- Connection management
-- Retry logic and error handling
-- TypeScript-first API design
+- High-level client for queue, message, schedule, and schema operations
+- Connection management and pooling
+- Retry logic and robust error handling
+- TypeScript-first API design with full type safety
+- Protocol types re-exported for convenience
 
 ## 🧪 Testing
 
@@ -164,6 +219,7 @@ cd packages/proto && pnpm test:watch
 Current test coverage:
 
 - **Proto package**: 29 tests covering all generated types and services
+- **Client package**: Comprehensive tests for all client APIs (queues, messages, schedules, schemas, error handling)
 
 ## 📋 Releasing
 
@@ -238,7 +294,7 @@ For questions and support:
 - [x] Proto package with generated TypeScript types
 - [x] Comprehensive testing infrastructure
 - [x] CI/CD workflows
-- [ ] Client SDK implementation
+- [x] Client SDK implementation
 - [ ] Connection pooling and management
 - [ ] Advanced queue operations
 - [ ] Monitoring and observability hooks
