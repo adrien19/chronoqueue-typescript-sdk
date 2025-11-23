@@ -95,7 +95,7 @@ if (message) {
     "checkout-orders",
     message.messageId,
     ProtoMessage.Message_Metadata_State.PROCESSED,
-    streamEntryId,
+    streamEntryId
   );
 }
 await client.disconnect();
@@ -229,12 +229,12 @@ Push a tag to trigger automatic publishing:
 
 ```bash
 # Production release
-git tag 1.0.0-release
-git push origin 1.0.0-release
+git tag v1.0.0-release
+git push origin v1.0.0-release
 
 # Beta release
-git tag 1.0.0-beta
-git push origin 1.0.0-beta
+git tag v1.0.0-beta
+git push origin v1.0.0-beta
 ```
 
 ### Manual Release

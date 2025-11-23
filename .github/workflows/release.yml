@@ -164,9 +164,9 @@ jobs:
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          name: "@chronoqueue/proto v${{ needs.validate.outputs.version }}"
+          name: "@chronoqueue/proto ${{ needs.validate.outputs.version }}"
           body: |
-            ## @chronoqueue/proto v${{ needs.validate.outputs.version }}
+            ## @chronoqueue/proto ${{ needs.validate.outputs.version }}
 
             Published proto package to npm.
 
@@ -233,9 +233,9 @@ jobs:
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          name: "@chronoqueue/client v${{ needs.validate.outputs.version }}"
+          name: "@chronoqueue/client ${{ needs.validate.outputs.version }}"
           body: |
-            ## @chronoqueue/client v${{ needs.validate.outputs.version }}
+            ## @chronoqueue/client ${{ needs.validate.outputs.version }}
 
             Published client package to npm.
 
