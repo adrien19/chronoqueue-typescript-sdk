@@ -14,10 +14,12 @@ export function parseDuration(duration: string): Duration {
   const value = parseInt(match[1], 10);
   const unit = match[2];
 
-  let seconds: number;
+  let seconds: number = 0;
+  let nanos: number = 0;
   switch (unit) {
     case "ms":
       seconds = Math.floor(value / 1000);
+      nanos = (value % 1000) * 1000000;
       break;
     case "s":
       seconds = value;
@@ -34,7 +36,7 @@ export function parseDuration(duration: string): Duration {
 
   return {
     seconds: seconds.toString(),
-    nanos: 0,
+    nanos,
   };
 }
 

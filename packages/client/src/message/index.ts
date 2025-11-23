@@ -89,6 +89,7 @@ export class MessageClient {
   ): Promise<boolean> {
     validateRequired(queueName, "queueName");
     validateRequired(messageId, "messageId");
+    validateRequired(state, "state");
     validateRequired(streamEntryId, "streamEntryId");
 
     const client = this.connection.getQueueServiceClient();

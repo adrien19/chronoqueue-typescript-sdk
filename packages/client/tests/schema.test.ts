@@ -2,8 +2,6 @@ import { QueueServiceTypes } from '@chronoqueue/proto';
 import { Connection } from '../src/connection';
 import { SchemaClient } from '../src/schema';
 
-// Mock Connection
-jest.mock('../src/connection');
 
 describe('SchemaClient', () => {
     let schemaClient: SchemaClient;

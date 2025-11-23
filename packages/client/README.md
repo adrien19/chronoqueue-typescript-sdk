@@ -24,8 +24,8 @@ await client.connect();
 
 // Create a queue
 await client.queues.createQueue("checkout-orders", {
-  type: "SIMPLE",
-  maxAttempts: 3,
+  type: ProtoQueue.QueueType.SIMPLE,
+  defaultMaxAttempts: 3,
   leaseDuration: { seconds: "300", nanos: 0 },
   autoCreateDlq: true,
 });
@@ -103,7 +103,7 @@ await client.queues.createQueue("orders", {
 const queue = await client.queues.getQueueState("orders");
 
 // List queues
-const { queues, nextPageToken } = await client.queues.listQueues(100);
+const queues = await client.queues.listQueues();
 
 // Delete queue
 await client.queues.deleteQueue("orders");

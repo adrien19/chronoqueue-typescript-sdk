@@ -290,19 +290,32 @@ export interface ListSchedulesOptions {
  */
 export enum ErrorCode {
   // Client errors
+
+  // eslint-disable-next-line no-unused-vars
   INVALID_ARGUMENT = "INVALID_ARGUMENT",
+  // eslint-disable-next-line no-unused-vars
   NOT_FOUND = "NOT_FOUND",
+  // eslint-disable-next-line no-unused-vars
   ALREADY_EXISTS = "ALREADY_EXISTS",
+  // eslint-disable-next-line no-unused-vars
   PERMISSION_DENIED = "PERMISSION_DENIED",
+  // eslint-disable-next-line no-unused-vars
   RESOURCE_EXHAUSTED = "RESOURCE_EXHAUSTED",
 
   // Server errors
+
+  // eslint-disable-next-line no-unused-vars
   INTERNAL = "INTERNAL",
+  // eslint-disable-next-line no-unused-vars
   UNAVAILABLE = "UNAVAILABLE",
+  // eslint-disable-next-line no-unused-vars
   DEADLINE_EXCEEDED = "DEADLINE_EXCEEDED",
 
   // Connection errors
+
+  // eslint-disable-next-line no-unused-vars
   CONNECTION_FAILED = "CONNECTION_FAILED",
+  // eslint-disable-next-line no-unused-vars
   CONNECTION_TIMEOUT = "CONNECTION_TIMEOUT",
 }
 
