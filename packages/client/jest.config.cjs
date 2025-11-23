@@ -8,4 +8,7 @@ module.exports = {
   collectCoverageFrom: ["src/**/*.ts", "!src/**/*.d.ts", "!src/**/index.ts"],
   coverageDirectory: "coverage",
   coverageReporters: ["text", "lcov", "html"],
+  moduleNameMapper: {
+    "^@chronoqueue/proto(.*)$": "<rootDir>/../proto/src$1",
+  },
 };
