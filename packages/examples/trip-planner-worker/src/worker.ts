@@ -100,6 +100,18 @@ class TripPlannerWorker {
       console.error(
         `\u274c Invalid message ${messageId}: missing or invalid payload`,
       );
+      try {
+        await this.client.messages.acknowledgeMessage(
+          QUEUE_NAME,
+          messageId,
+          Message.Message_Metadata_State.ERRORED,
+          workerId,
+          attemptId,
+        );
+      } catch (ackError) {
+        console.error("   ⚠️  Failed to acknowledge error:", ackError);
+      }
+      if (stopHeartbeat) stopHeartbeat();
       return;
     }
     const payload = rawPayload as PlanTripPayload;

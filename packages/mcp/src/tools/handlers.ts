@@ -1031,7 +1031,13 @@ Content Type: ${schema.contentType || 'json-schema'}
 Description: ${schema.description || 'N/A'}
 
 Content:
-${JSON.stringify(JSON.parse(schema.content), null, 2)}`;
+${(() => {
+  try {
+    return JSON.stringify(JSON.parse(schema.content), null, 2);
+  } catch {
+    return schema.content;
+  }
+})()}`;
 }
 
 async function handleListSchemas(

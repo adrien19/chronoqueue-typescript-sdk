@@ -5,7 +5,7 @@
  * Each handler processes a specific task type and returns a result.
  */
 
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import { promisify } from "util";
 import {
   TaskStatus,
@@ -20,7 +20,7 @@ import {
   type TaskResult,
 } from "./types.js";
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 /**
  * Handler function type
@@ -48,12 +48,11 @@ async function handleShellCommand(
   context: HandlerContext,
 ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
   const { command, args = [], cwd, env } = task;
-  const fullCommand = [command, ...args].join(" ");
 
-  context.log(`Executing: ${fullCommand}`);
+  context.log(`Executing: ${command} ${args.join(" ")}`);
 
   try {
-    const { stdout, stderr } = await execAsync(fullCommand, {
+    const { stdout, stderr } = await execFileAsync(command, args, {
       cwd: cwd || process.cwd(),
       env: { ...process.env, ...env },
       timeout: task.timeoutMs || 30000,

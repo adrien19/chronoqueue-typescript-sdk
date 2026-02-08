@@ -9,7 +9,7 @@
  * - Error handling and acknowledgment
  */
 
-import { ChronoQueueClient } from "@chronoqueue/client";
+import { ChronoQueueClient, Message } from "@chronoqueue/client";
 import { executeTask, type HandlerContext } from "./handlers.js";
 import {
   TaskStatus,
@@ -224,7 +224,7 @@ class AgentWorker {
         await this.client.messages.acknowledgeMessage(
           this.config.queueName,
           messageId,
-          3, // COMPLETED state
+          Message.Message_Metadata_State.COMPLETED,
           workerId,
           attemptId,
         );

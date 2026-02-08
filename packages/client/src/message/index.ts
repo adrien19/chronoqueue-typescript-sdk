@@ -181,8 +181,10 @@ export class MessageClient {
           client.postMessagesBulk(request, (error, response) => {
             if (error) {
               reject(handleGrpcError(error));
+            } else if (response) {
+              resolve(response);
             } else {
-              resolve(response as QueueServiceTypes.PostMessagesBulkResponse);
+              reject(new Error("Empty response from server"));
             }
           });
         },

@@ -155,6 +155,9 @@ importers:
       "@typescript-eslint/parser":
         specifier: ^7.0.0
         version: 7.18.0(eslint@8.57.1)(typescript@5.9.3)
+      "@vitest/coverage-v8":
+        specifier: ^1.6.0
+        version: 1.6.1(vitest@1.6.1(@types/node@20.19.25))
       eslint:
         specifier: ^8.57.0
         version: 8.57.1
@@ -209,6 +212,13 @@ importers:
         version: 5.9.3
 
 packages:
+  "@ampproject/remapping@2.3.0":
+    resolution:
+      {
+        integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==,
+      }
+    engines: { node: ">=6.0.0" }
+
   "@babel/code-frame@7.27.1":
     resolution:
       {
@@ -2920,6 +2930,14 @@ packages:
         integrity: sha512-2e54Z1J1+OPM0LCxjkJHgwFm8jESsCYaX6ARs3+29hjoI75uiSphxFI3Hrhr+67ho/7Mtul0oyakK6l18MN/Dg==,
       }
     engines: { node: ">=18" }
+
+  "@vitest/coverage-v8@1.6.1":
+    resolution:
+      {
+        integrity: sha512-6YeRZwuO4oTGKxD3bijok756oktHSIm3eczVVzNe3scqzuhLwltIF3S9ZL/vwOVIpURmU6SnZhziXXAfw8/Qlw==,
+      }
+    peerDependencies:
+      vitest: 1.6.1
 
   "@vitest/expect@1.6.1":
     resolution:
@@ -5762,6 +5780,13 @@ packages:
       }
     engines: { node: ">=10" }
 
+  istanbul-lib-source-maps@5.0.6:
+    resolution:
+      {
+        integrity: sha512-yg2d+Em4KizZC5niWhQaIomgf5WlL4vOOjZ5xGCmF8SnPE/mDWWXgvRExdcpCgh9lLRRa1/fSYp2ymmbJ1pI+A==,
+      }
+    engines: { node: ">=10" }
+
   istanbul-reports@3.2.0:
     resolution:
       {
@@ -6427,6 +6452,12 @@ packages:
     resolution:
       {
         integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==,
+      }
+
+  magicast@0.3.5:
+    resolution:
+      {
+        integrity: sha512-L0WhttDl+2BOsybvEOLK7fW3UA0OQ0IQ2d6Zl2x/a6vVRs3bAY0ECOSHHeL5jD+SbOpOCUEi0y1DgHEn9Qn1AQ==,
       }
 
   make-dir@2.1.0:
@@ -9418,6 +9449,11 @@ packages:
       }
 
 snapshots:
+  "@ampproject/remapping@2.3.0":
+    dependencies:
+      "@jridgewell/gen-mapping": 0.3.13
+      "@jridgewell/trace-mapping": 0.3.31
+
   "@babel/code-frame@7.27.1":
     dependencies:
       "@babel/helper-validator-identifier": 7.28.5
@@ -11353,6 +11389,25 @@ snapshots:
       lodash: 4.17.21
       minimatch: 7.4.6
 
+  "@vitest/coverage-v8@1.6.1(vitest@1.6.1(@types/node@20.19.25))":
+    dependencies:
+      "@ampproject/remapping": 2.3.0
+      "@bcoe/v8-coverage": 0.2.3
+      debug: 4.4.3
+      istanbul-lib-coverage: 3.2.2
+      istanbul-lib-report: 3.0.1
+      istanbul-lib-source-maps: 5.0.6
+      istanbul-reports: 3.2.0
+      magic-string: 0.30.21
+      magicast: 0.3.5
+      picocolors: 1.1.1
+      std-env: 3.10.0
+      strip-literal: 2.1.1
+      test-exclude: 6.0.0
+      vitest: 1.6.1(@types/node@20.19.25)
+    transitivePeerDependencies:
+      - supports-color
+
   "@vitest/expect@1.6.1":
     dependencies:
       "@vitest/spy": 1.6.1
@@ -13171,6 +13226,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  istanbul-lib-source-maps@5.0.6:
+    dependencies:
+      "@jridgewell/trace-mapping": 0.3.31
+      debug: 4.4.3
+      istanbul-lib-coverage: 3.2.2
+    transitivePeerDependencies:
+      - supports-color
+
   istanbul-reports@3.2.0:
     dependencies:
       html-escaper: 2.0.2
@@ -13908,6 +13971,12 @@ snapshots:
   magic-string@0.30.21:
     dependencies:
       "@jridgewell/sourcemap-codec": 1.5.5
+
+  magicast@0.3.5:
+    dependencies:
+      "@babel/parser": 7.28.5
+      "@babel/types": 7.28.5
+      source-map-js: 1.2.1
 
   make-dir@2.1.0:
     dependencies:

@@ -170,7 +170,7 @@ export class DLQClient {
               updatedAt: response.updatedAt,
             });
           } else {
-            reject(new Error("Empty response from server"));
+            reject(handleGrpcError(new Error("Empty response from server")));
           }
         });
       });
