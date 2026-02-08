@@ -53,7 +53,8 @@ export const createQueueTool: Tool = {
           },
           heartbeat_timeout: {
             type: 'string',
-            description: 'Maximum gap between heartbeats (e.g., "10s"). If unset, heartbeat timeout disabled',
+            description:
+              'Maximum gap between heartbeats (e.g., "10s"). If unset, heartbeat timeout disabled',
           },
           extend_step: {
             type: 'string',
@@ -73,18 +74,21 @@ export const createQueueTool: Tool = {
           mode: {
             type: 'string',
             enum: ['delete_immediately', 'retain_duration', 'retain_forever'],
-            description: 'Retention mode: delete_immediately (default), retain_duration, or retain_forever',
+            description:
+              'Retention mode: delete_immediately (default), retain_duration, or retain_forever',
           },
           retention_seconds: {
             type: 'number',
-            description: 'Retention duration in seconds (for retain_duration mode). E.g., 2592000 for 30 days',
+            description:
+              'Retention duration in seconds (for retain_duration mode). E.g., 2592000 for 30 days',
           },
         },
       },
       // Legacy field (deprecated, use lease_policy instead)
       lease_duration: {
         type: 'string',
-        description: '[DEPRECATED: Use lease_policy.base_lease instead] Default message lease duration (e.g., "30s", "5m")',
+        description:
+          '[DEPRECATED: Use lease_policy.base_lease instead] Default message lease duration (e.g., "30s", "5m")',
       },
     },
     required: ['queue_name'],
@@ -179,7 +183,8 @@ export const postMessageTool: Tool = {
 
 export const postMessagesBulkTool: Tool = {
   name: 'post_messages_bulk',
-  description: 'Post multiple messages to a queue in bulk (up to 1000 messages). Supports two transaction modes: ALL_OR_NOTHING (default, atomic operation) or BEST_EFFORT (partial success allowed)',
+  description:
+    'Post multiple messages to a queue in bulk (up to 1000 messages). Supports two transaction modes: ALL_OR_NOTHING (default, atomic operation) or BEST_EFFORT (partial success allowed)',
   inputSchema: {
     type: 'object',
     properties: {
@@ -228,7 +233,8 @@ export const postMessagesBulkTool: Tool = {
       transaction_mode: {
         type: 'number',
         enum: [0, 1],
-        description: 'Transaction mode: 0 = ALL_OR_NOTHING (default, all succeed or all fail), 1 = BEST_EFFORT (partial success allowed)',
+        description:
+          'Transaction mode: 0 = ALL_OR_NOTHING (default, all succeed or all fail), 1 = BEST_EFFORT (partial success allowed)',
         default: 0,
       },
     },

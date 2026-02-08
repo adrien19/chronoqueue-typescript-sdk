@@ -6,10 +6,7 @@ import { handleGrpcError, validateRequired } from "../utils/errors";
  * Queue client for managing queues
  */
 export class QueueClient {
-  constructor(
-    // eslint-disable-next-line no-unused-vars
-    private readonly connection: Connection,
-  ) { }
+  constructor(private readonly connection: Connection) {}
 
   /**
    * Create a new queue
@@ -91,19 +88,21 @@ export class QueueClient {
     return this.connection.withRetry(async () => {
       const client = this.connection.getQueueServiceClient();
 
-      return new Promise<QueueServiceTypes.GetQueueStateResponse>((resolve, reject) => {
-        const request: QueueServiceTypes.GetQueueStateRequest = {
-          queueName,
-        };
+      return new Promise<QueueServiceTypes.GetQueueStateResponse>(
+        (resolve, reject) => {
+          const request: QueueServiceTypes.GetQueueStateRequest = {
+            queueName,
+          };
 
-        client.getQueueState(request, (error, response) => {
-          if (error) {
-            reject(handleGrpcError(error));
-          } else {
-            resolve(response);
-          }
-        });
-      });
+          client.getQueueState(request, (error, response) => {
+            if (error) {
+              reject(handleGrpcError(error));
+            } else {
+              resolve(response);
+            }
+          });
+        },
+      );
     });
   }
 

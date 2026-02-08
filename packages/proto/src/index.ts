@@ -15,7 +15,6 @@ export * as QueueService from "./generated/proto/queueservice/v1/service";
 export * as Schedule from "./generated/proto/schedule/v1/schedule";
 export * as Schema from "./generated/proto/schema/v1/schema";
 
-
 // Re-export commonly used types directly for convenience
 export type { LeasePolicy, Payload } from "./generated/proto/common/v1/common";
 
@@ -27,4 +26,3 @@ export * as GoogleApiHttp from "./generated/proto/google/api/http";
 // Re-export Google protobuf types
 export type { Duration } from "./generated/google/protobuf/duration";
 export type { Timestamp } from "./generated/google/protobuf/timestamp";
-

@@ -11,55 +11,55 @@ import { ClientConfig } from "./types";
  * Main ChronoQueue client
  */
 export class ChronoQueueClient {
-    private connection: Connection;
-    private readonly _workerId?: string;
+  private connection: Connection;
+  private readonly _workerId?: string;
 
-    public readonly queues: QueueClient;
-    public readonly messages: MessageClient;
-    public readonly schedules: ScheduleClient;
-    public readonly schemas: SchemaClient;
-    public readonly dlq: DLQClient;
+  public readonly queues: QueueClient;
+  public readonly messages: MessageClient;
+  public readonly schedules: ScheduleClient;
+  public readonly schemas: SchemaClient;
+  public readonly dlq: DLQClient;
 
-    constructor(config: ClientConfig) {
-        this.connection = new Connection(config.connection);
-        this._workerId = config.workerId;
+  constructor(config: ClientConfig) {
+    this.connection = new Connection(config.connection);
+    this._workerId = config.workerId;
 
-        const logger = config.logger || defaultLogger;
+    const logger = config.logger || defaultLogger;
 
-        this.queues = new QueueClient(this.connection);
-        this.messages = new MessageClient(this.connection, config.workerId, logger);
-        this.schedules = new ScheduleClient(this.connection);
-        this.schemas = new SchemaClient(this.connection);
-        this.dlq = new DLQClient(this.connection);
-    }
+    this.queues = new QueueClient(this.connection);
+    this.messages = new MessageClient(this.connection, config.workerId, logger);
+    this.schedules = new ScheduleClient(this.connection);
+    this.schemas = new SchemaClient(this.connection);
+    this.dlq = new DLQClient(this.connection);
+  }
 
-    /**
-     * Get the workerId for this client instance
-     */
-    get workerId(): string | undefined {
-        return this._workerId;
-    }
+  /**
+   * Get the workerId for this client instance
+   */
+  get workerId(): string | undefined {
+    return this._workerId;
+  }
 
-    /**
-     * Connect to ChronoQueue server
-     */
-    async connect(): Promise<void> {
-        await this.connection.connect();
-    }
+  /**
+   * Connect to ChronoQueue server
+   */
+  async connect(): Promise<void> {
+    await this.connection.connect();
+  }
 
-    /**
-     * Disconnect from ChronoQueue server
-     */
-    async disconnect(): Promise<void> {
-        // Stop all active heartbeats before disconnecting
-        this.messages.stopAllHeartbeats();
-        await this.connection.disconnect();
-    }
+  /**
+   * Disconnect from ChronoQueue server
+   */
+  async disconnect(): Promise<void> {
+    // Stop all active heartbeats before disconnecting
+    this.messages.stopAllHeartbeats();
+    await this.connection.disconnect();
+  }
 
-    /**
-     * Check if connected to server
-     */
-    isConnected(): boolean {
-        return this.connection.isConnected();
-    }
+  /**
+   * Check if connected to server
+   */
+  isConnected(): boolean {
+    return this.connection.isConnected();
+  }
 }

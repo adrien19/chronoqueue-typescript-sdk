@@ -1,6 +1,12 @@
 import { QueueService } from "@chronoqueue/proto";
 import * as grpc from "@grpc/grpc-js";
-import { ChronoQueueError, ConnectionOptions, ErrorCode, HealthCheckOptions, RetryOptions } from "./types";
+import {
+  ChronoQueueError,
+  ConnectionOptions,
+  ErrorCode,
+  HealthCheckOptions,
+  RetryOptions,
+} from "./types";
 import { RetryConfig, retryOperation } from "./utils/retry";
 
 type QueueServiceClient = InstanceType<typeof QueueService.QueueServiceClient>;
@@ -18,7 +24,7 @@ const DEFAULT_HEALTH_CHECK_OPTIONS: Required<HealthCheckOptions> = {
   enabled: false,
   intervalMs: 30000,
   autoReconnect: true,
-  onHealthChange: () => { },
+  onHealthChange: () => {},
 };
 
 /**
@@ -60,8 +66,14 @@ export class Connection {
       ...DEFAULT_RETRY_OPTIONS,
       ...(options.retry || {}),
       // Support legacy options
-      maxRetries: options.retry?.maxRetries ?? options.maxRetries ?? DEFAULT_RETRY_OPTIONS.maxRetries,
-      baseDelay: options.retry?.baseDelay ?? options.retryDelay ?? DEFAULT_RETRY_OPTIONS.baseDelay,
+      maxRetries:
+        options.retry?.maxRetries ??
+        options.maxRetries ??
+        DEFAULT_RETRY_OPTIONS.maxRetries,
+      baseDelay:
+        options.retry?.baseDelay ??
+        options.retryDelay ??
+        DEFAULT_RETRY_OPTIONS.baseDelay,
     };
 
     // Merge health check options with defaults
@@ -293,7 +305,7 @@ export class Connection {
         this.retryOptions.maxDelay,
       );
 
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
 
       // Attempt to reconnect
       this.queueServiceClient = new QueueService.QueueServiceClient(
@@ -308,7 +320,7 @@ export class Connection {
       this.lastHealthy = true;
       this.reconnectAttempts = 0;
       this.healthCheckOptions.onHealthChange(true);
-    } catch (error) {
+    } catch (_error) {
       this.state = ConnectionState.DISCONNECTED;
       // Will retry on next health check
     }

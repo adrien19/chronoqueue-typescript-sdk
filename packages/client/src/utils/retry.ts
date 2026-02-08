@@ -25,7 +25,8 @@ export function isRetryableError(error: Error): boolean {
     return (
       error.code === ErrorCode.UNAVAILABLE ||
       error.code === ErrorCode.DEADLINE_EXCEEDED ||
-      error.code === ErrorCode.INTERNAL
+      error.code === ErrorCode.INTERNAL ||
+      error.code === ErrorCode.RESOURCE_EXHAUSTED
     );
   }
 

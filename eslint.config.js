@@ -21,16 +21,43 @@ export default [
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: ["./packages/*/tsconfig.json"],
+        project: [
+          "./packages/proto/tsconfig.json",
+          "./packages/client/tsconfig.json",
+          "./packages/mcp/tsconfig.eslint.json",
+        ],
         tsconfigRootDir: import.meta.dirname,
         sourceType: "module",
+      },
+      globals: {
+        console: "readonly",
+        process: "readonly",
+        Buffer: "readonly",
+        setTimeout: "readonly",
+        setInterval: "readonly",
+        clearTimeout: "readonly",
+        clearInterval: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+        module: "readonly",
+        require: "readonly",
+        exports: "readonly",
       },
     },
     plugins: {
       "@typescript-eslint": tseslint,
     },
     rules: {
-      "@typescript-eslint/no-unused-vars": "warn",
+      // Disable base no-unused-vars in favor of TypeScript version
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
       "@typescript-eslint/explicit-function-return-type": "off",
     },
   },

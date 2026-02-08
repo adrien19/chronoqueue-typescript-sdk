@@ -1,14 +1,12 @@
 {
-    "extends": "../../tsconfig.json",
-    "compilerOptions": {
-        "outDir": "./dist",
-        "rootDir": ".",
-        "module": "commonjs",
-        "esModuleInterop": true,
-        "resolveJsonModule": true,
-        "strict": true
-    },
-    "include": [
-        "*.ts"
-    ]
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": ".",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "strict": true
+  },
+  "include": ["*.ts"]
 }

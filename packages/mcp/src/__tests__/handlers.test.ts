@@ -289,10 +289,10 @@ describe('Tool Handlers', () => {
       expect(mockClient.messages.getNextMessage).toHaveBeenCalledWith(
         'test-queue',
         { seconds: '30', nanos: 0 },
-        undefined,  // exclusivity_key
-        false,      // autoHeartbeat
-        1000,       // heartbeatIntervalMs
-        undefined   // worker_id
+        undefined, // exclusivity_key
+        false, // autoHeartbeat
+        1000, // heartbeatIntervalMs
+        undefined // worker_id
       );
       expect(result).toContain('📨 Message Retrieved');
       expect(result).toContain('msg-123');
@@ -392,11 +392,10 @@ describe('Tool Handlers', () => {
         mockClient
       );
 
-      expect(mockClient.messages.renewMessageLease).toHaveBeenCalledWith(
-        'test-queue',
-        'msg-123',
-        { seconds: '60', nanos: 0 }
-      );
+      expect(mockClient.messages.renewMessageLease).toHaveBeenCalledWith('test-queue', 'msg-123', {
+        seconds: '60',
+        nanos: 0,
+      });
       expect(result).toContain('✓ Message lease renewed');
       expect(result).toContain('Remaining Time: 60s');
     });

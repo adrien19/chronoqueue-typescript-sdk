@@ -6,10 +6,7 @@ import { handleGrpcError, validateRequired } from "../utils/errors";
  * Schema client for schema management operations
  */
 export class SchemaClient {
-  constructor(
-    // eslint-disable-next-line no-unused-vars
-    private readonly connection: Connection,
-  ) { }
+  constructor(private readonly connection: Connection) {}
 
   /**
    * Register a new schema (creates a new version automatically)
@@ -30,7 +27,11 @@ export class SchemaClient {
     return this.connection.withRetry(async () => {
       const client = this.connection.getQueueServiceClient();
 
-      return new Promise<{ schemaId: string; version: number; createdAt: string }>((resolve, reject) => {
+      return new Promise<{
+        schemaId: string;
+        version: number;
+        createdAt: string;
+      }>((resolve, reject) => {
         const request: QueueServiceTypes.RegisterSchemaRequest = {
           schemaId,
           name: options?.name || "",
@@ -144,7 +145,7 @@ export class SchemaClient {
 
   /**
    * Validate a payload against a schema
-   * 
+   *
    * @param schemaId - The schema ID to validate against
    * @param payload - The payload to validate (object or JSON string)
    * @param version - Schema version (0 for latest)

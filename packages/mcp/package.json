@@ -40,7 +40,7 @@
   "dependencies": {
     "@chronoqueue/client": "workspace:*",
     "@grpc/grpc-js": "^1.14.1",
-    "@modelcontextprotocol/sdk": "^1.22.0",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

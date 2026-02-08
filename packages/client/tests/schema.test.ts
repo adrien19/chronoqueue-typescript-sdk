@@ -257,7 +257,11 @@ describe("SchemaClient", () => {
         (_req: any, callback: any) => callback(null, mockResponse),
       );
 
-      const result = await schemaClient.validatePayload("test-schema", payload, 1);
+      const result = await schemaClient.validatePayload(
+        "test-schema",
+        payload,
+        1,
+      );
 
       expect(result.valid).toBe(false);
       expect(result.errors).toHaveLength(1);
@@ -286,7 +290,8 @@ describe("SchemaClient", () => {
 
     it("should reject when server returns error", async () => {
       mockQueueServiceClient.validatePayload.mockImplementation(
-        (_req: any, callback: any) => callback(new Error("Schema not found"), null),
+        (_req: any, callback: any) =>
+          callback(new Error("Schema not found"), null),
       );
 
       await expect(

@@ -9,10 +9,7 @@ import { handleGrpcError, validateRequired } from "../utils/errors";
  * Schedule client for managing scheduled tasks
  */
 export class ScheduleClient {
-  constructor(
-    // eslint-disable-next-line no-unused-vars
-    private readonly connection: Connection,
-  ) { }
+  constructor(private readonly connection: Connection) {}
 
   /**
    * Create a schedule
@@ -50,19 +47,21 @@ export class ScheduleClient {
     return this.connection.withRetry(async () => {
       const client = this.connection.getQueueServiceClient();
 
-      return new Promise<ProtoSchedule.Schedule | undefined>((resolve, reject) => {
-        const request: QueueServiceTypes.GetScheduleRequest = {
-          scheduleId,
-        };
+      return new Promise<ProtoSchedule.Schedule | undefined>(
+        (resolve, reject) => {
+          const request: QueueServiceTypes.GetScheduleRequest = {
+            scheduleId,
+          };
 
-        client.getSchedule(request, (error, response) => {
-          if (error) {
-            reject(handleGrpcError(error));
-          } else {
-            resolve(response?.schedule);
-          }
-        });
-      });
+          client.getSchedule(request, (error, response) => {
+            if (error) {
+              reject(handleGrpcError(error));
+            } else {
+              resolve(response?.schedule);
+            }
+          });
+        },
+      );
     });
   }
 
@@ -166,7 +165,7 @@ export class ScheduleClient {
 
   /**
    * Get schedule execution history
-   * 
+   *
    * @param scheduleId - The schedule ID to get history for
    * @param limit - Maximum number of history records to return (default: 100)
    */
@@ -179,20 +178,22 @@ export class ScheduleClient {
     return this.connection.withRetry(async () => {
       const client = this.connection.getQueueServiceClient();
 
-      return new Promise<ProtoSchedule.ScheduleHistory | undefined>((resolve, reject) => {
-        const request: QueueServiceTypes.GetScheduleHistoryRequest = {
-          scheduleId,
-          limit: (limit || 100).toString(),
-        };
+      return new Promise<ProtoSchedule.ScheduleHistory | undefined>(
+        (resolve, reject) => {
+          const request: QueueServiceTypes.GetScheduleHistoryRequest = {
+            scheduleId,
+            limit: (limit || 100).toString(),
+          };
 
-        client.getScheduleHistory(request, (error, response) => {
-          if (error) {
-            reject(handleGrpcError(error));
-          } else {
-            resolve(response?.scheduleHistory);
-          }
-        });
-      });
+          client.getScheduleHistory(request, (error, response) => {
+            if (error) {
+              reject(handleGrpcError(error));
+            } else {
+              resolve(response?.scheduleHistory);
+            }
+          });
+        },
+      );
     });
   }
 }

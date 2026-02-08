@@ -29,7 +29,7 @@ export function loadConfig(): ServerConfig {
 
 /**
  * Parse duration string to milliseconds
- * 
+ *
  * Uses the client's parseDuration for consistency, then converts to ms.
  * Supports formats: "30s", "5m", "1h", "100ms"
  */
