@@ -1,4 +1,6 @@
 import { Connection } from "./connection";
+import { DLQClient } from "./dlq";
+import { defaultLogger } from "./logger";
 import { MessageClient } from "./message";
 import { QueueClient } from "./queue";
 import { ScheduleClient } from "./schedule";
@@ -9,40 +11,55 @@ import { ClientConfig } from "./types";
  * Main ChronoQueue client
  */
 export class ChronoQueueClient {
-  private connection: Connection;
+    private connection: Connection;
+    private readonly _workerId?: string;
 
-  public readonly queues: QueueClient;
-  public readonly messages: MessageClient;
-  public readonly schedules: ScheduleClient;
-  public readonly schemas: SchemaClient;
+    public readonly queues: QueueClient;
+    public readonly messages: MessageClient;
+    public readonly schedules: ScheduleClient;
+    public readonly schemas: SchemaClient;
+    public readonly dlq: DLQClient;
 
-  constructor(config: ClientConfig) {
-    this.connection = new Connection(config.connection);
+    constructor(config: ClientConfig) {
+        this.connection = new Connection(config.connection);
+        this._workerId = config.workerId;
 
-    this.queues = new QueueClient(this.connection);
-    this.messages = new MessageClient(this.connection);
-    this.schedules = new ScheduleClient(this.connection);
-    this.schemas = new SchemaClient(this.connection);
-  }
+        const logger = config.logger || defaultLogger;
 
-  /**
-   * Connect to ChronoQueue server
-   */
-  async connect(): Promise<void> {
-    await this.connection.connect();
-  }
+        this.queues = new QueueClient(this.connection);
+        this.messages = new MessageClient(this.connection, config.workerId, logger);
+        this.schedules = new ScheduleClient(this.connection);
+        this.schemas = new SchemaClient(this.connection);
+        this.dlq = new DLQClient(this.connection);
+    }
 
-  /**
-   * Disconnect from ChronoQueue server
-   */
-  async disconnect(): Promise<void> {
-    await this.connection.disconnect();
-  }
+    /**
+     * Get the workerId for this client instance
+     */
+    get workerId(): string | undefined {
+        return this._workerId;
+    }
 
-  /**
-   * Check if connected to server
-   */
-  isConnected(): boolean {
-    return this.connection.isConnected();
-  }
+    /**
+     * Connect to ChronoQueue server
+     */
+    async connect(): Promise<void> {
+        await this.connection.connect();
+    }
+
+    /**
+     * Disconnect from ChronoQueue server
+     */
+    async disconnect(): Promise<void> {
+        // Stop all active heartbeats before disconnecting
+        this.messages.stopAllHeartbeats();
+        await this.connection.disconnect();
+    }
+
+    /**
+     * Check if connected to server
+     */
+    isConnected(): boolean {
+        return this.connection.isConnected();
+    }
 }

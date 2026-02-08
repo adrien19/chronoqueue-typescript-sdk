@@ -1,6 +1,6 @@
 import { Schema as ProtoSchema, QueueServiceTypes } from "@chronoqueue/proto";
 import { Connection } from "../connection";
-import { validateRequired } from "../utils/errors";
+import { handleGrpcError, validateRequired } from "../utils/errors";
 
 /**
  * Schema client for schema management operations
@@ -9,7 +9,7 @@ export class SchemaClient {
   constructor(
     // eslint-disable-next-line no-unused-vars
     private readonly connection: Connection,
-  ) {}
+  ) { }
 
   /**
    * Register a new schema (creates a new version automatically)
@@ -27,30 +27,32 @@ export class SchemaClient {
     validateRequired(schemaId, "schemaId");
     validateRequired(content, "content");
 
-    const client = this.connection.getQueueServiceClient();
+    return this.connection.withRetry(async () => {
+      const client = this.connection.getQueueServiceClient();
 
-    return new Promise((resolve, reject) => {
-      const request: QueueServiceTypes.RegisterSchemaRequest = {
-        schemaId,
-        name: options?.name || "",
-        description: options?.description || "",
-        content,
-        contentType: options?.contentType || "json-schema",
-        metadata: options?.metadata || {},
-      };
+      return new Promise<{ schemaId: string; version: number; createdAt: string }>((resolve, reject) => {
+        const request: QueueServiceTypes.RegisterSchemaRequest = {
+          schemaId,
+          name: options?.name || "",
+          description: options?.description || "",
+          content,
+          contentType: options?.contentType || "json-schema",
+          metadata: options?.metadata || {},
+        };
 
-      client.registerSchema(request, (error, response) => {
-        if (error) {
-          reject(error);
-        } else if (response) {
-          resolve({
-            schemaId: response.schemaId,
-            version: response.version,
-            createdAt: response.createdAt,
-          });
-        } else {
-          reject(new Error("Empty response from server"));
-        }
+        client.registerSchema(request, (error, response) => {
+          if (error) {
+            reject(handleGrpcError(error));
+          } else if (response) {
+            resolve({
+              schemaId: response.schemaId,
+              version: response.version,
+              createdAt: response.createdAt,
+            });
+          } else {
+            reject(new Error("Empty response from server"));
+          }
+        });
       });
     });
   }
@@ -64,20 +66,22 @@ export class SchemaClient {
   ): Promise<ProtoSchema.Schema | undefined> {
     validateRequired(schemaId, "schemaId");
 
-    const client = this.connection.getQueueServiceClient();
+    return this.connection.withRetry(async () => {
+      const client = this.connection.getQueueServiceClient();
 
-    return new Promise((resolve, reject) => {
-      const request: QueueServiceTypes.GetSchemaRequest = {
-        schemaId,
-        version: version || 0, // 0 means latest version
-      };
+      return new Promise<ProtoSchema.Schema | undefined>((resolve, reject) => {
+        const request: QueueServiceTypes.GetSchemaRequest = {
+          schemaId,
+          version: version || 0, // 0 means latest version
+        };
 
-      client.getSchema(request, (error, response) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(response?.schema);
-        }
+        client.getSchema(request, (error, response) => {
+          if (error) {
+            reject(handleGrpcError(error));
+          } else {
+            resolve(response?.schema);
+          }
+        });
       });
     });
   }
@@ -90,22 +94,24 @@ export class SchemaClient {
     limit?: number;
     activeOnly?: boolean;
   }): Promise<QueueServiceTypes.SchemaInfo[]> {
-    const client = this.connection.getQueueServiceClient();
+    return this.connection.withRetry(async () => {
+      const client = this.connection.getQueueServiceClient();
 
-    return new Promise((resolve, reject) => {
-      const request: QueueServiceTypes.ListSchemasRequest = {
-        prefix: options?.prefix || "",
-        limit: options?.limit || 100,
-        activeOnly:
-          options?.activeOnly !== undefined ? options.activeOnly : false,
-      };
+      return new Promise<QueueServiceTypes.SchemaInfo[]>((resolve, reject) => {
+        const request: QueueServiceTypes.ListSchemasRequest = {
+          prefix: options?.prefix || "",
+          limit: options?.limit || 100,
+          activeOnly:
+            options?.activeOnly !== undefined ? options.activeOnly : false,
+        };
 
-      client.listSchemas(request, (error, response) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(response?.schemas || []);
-        }
+        client.listSchemas(request, (error, response) => {
+          if (error) {
+            reject(handleGrpcError(error));
+          } else {
+            resolve(response?.schemas || []);
+          }
+        });
       });
     });
   }
@@ -116,20 +122,80 @@ export class SchemaClient {
   async deleteSchema(schemaId: string, version?: number): Promise<boolean> {
     validateRequired(schemaId, "schemaId");
 
-    const client = this.connection.getQueueServiceClient();
+    return this.connection.withRetry(async () => {
+      const client = this.connection.getQueueServiceClient();
 
-    return new Promise((resolve, reject) => {
-      const request: QueueServiceTypes.DeleteSchemaRequest = {
-        schemaId,
-        version: version || 0, // 0 means all versions
-      };
+      return new Promise<boolean>((resolve, reject) => {
+        const request: QueueServiceTypes.DeleteSchemaRequest = {
+          schemaId,
+          version: version || 0, // 0 means all versions
+        };
 
-      client.deleteSchema(request, (error, response) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(response?.success || false);
-        }
+        client.deleteSchema(request, (error, response) => {
+          if (error) {
+            reject(handleGrpcError(error));
+          } else {
+            resolve(response?.success || false);
+          }
+        });
+      });
+    });
+  }
+
+  /**
+   * Validate a payload against a schema
+   * 
+   * @param schemaId - The schema ID to validate against
+   * @param payload - The payload to validate (object or JSON string)
+   * @param version - Schema version (0 for latest)
+   * @returns Validation result with errors if invalid
+   */
+  async validatePayload(
+    schemaId: string,
+    payload: any,
+    version?: number,
+  ): Promise<{
+    valid: boolean;
+    errors: ProtoSchema.ValidationError[];
+    schemaId: string;
+    schemaVersion: number;
+  }> {
+    validateRequired(schemaId, "schemaId");
+    validateRequired(payload, "payload");
+
+    // Convert payload to JSON string if it's an object
+    const payloadString =
+      typeof payload === "string" ? payload : JSON.stringify(payload);
+
+    return this.connection.withRetry(async () => {
+      const client = this.connection.getQueueServiceClient();
+
+      return new Promise<{
+        valid: boolean;
+        errors: ProtoSchema.ValidationError[];
+        schemaId: string;
+        schemaVersion: number;
+      }>((resolve, reject) => {
+        const request: QueueServiceTypes.ValidatePayloadRequest = {
+          schemaId,
+          version: version || 0,
+          payload: payloadString,
+        };
+
+        client.validatePayload(request, (error, response) => {
+          if (error) {
+            reject(handleGrpcError(error));
+          } else if (response) {
+            resolve({
+              valid: response.valid,
+              errors: response.errors,
+              schemaId: response.schemaId,
+              schemaVersion: response.schemaVersion,
+            });
+          } else {
+            reject(new Error("Empty response from server"));
+          }
+        });
       });
     });
   }

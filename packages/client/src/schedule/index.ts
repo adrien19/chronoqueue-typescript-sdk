@@ -3,7 +3,7 @@ import {
   QueueServiceTypes,
 } from "@chronoqueue/proto";
 import { Connection } from "../connection";
-import { validateRequired } from "../utils/errors";
+import { handleGrpcError, validateRequired } from "../utils/errors";
 
 /**
  * Schedule client for managing scheduled tasks
@@ -12,7 +12,7 @@ export class ScheduleClient {
   constructor(
     // eslint-disable-next-line no-unused-vars
     private readonly connection: Connection,
-  ) {}
+  ) { }
 
   /**
    * Create a schedule
@@ -20,19 +20,21 @@ export class ScheduleClient {
   async createSchedule(schedule: ProtoSchedule.Schedule): Promise<boolean> {
     validateRequired(schedule, "schedule");
 
-    const client = this.connection.getQueueServiceClient();
+    return this.connection.withRetry(async () => {
+      const client = this.connection.getQueueServiceClient();
 
-    return new Promise((resolve, reject) => {
-      const request: QueueServiceTypes.CreateScheduleRequest = {
-        schedule,
-      };
+      return new Promise<boolean>((resolve, reject) => {
+        const request: QueueServiceTypes.CreateScheduleRequest = {
+          schedule,
+        };
 
-      client.createSchedule(request, (error, response) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(response?.success || false);
-        }
+        client.createSchedule(request, (error, response) => {
+          if (error) {
+            reject(handleGrpcError(error));
+          } else {
+            resolve(response?.success || false);
+          }
+        });
       });
     });
   }
@@ -45,19 +47,21 @@ export class ScheduleClient {
   ): Promise<ProtoSchedule.Schedule | undefined> {
     validateRequired(scheduleId, "scheduleId");
 
-    const client = this.connection.getQueueServiceClient();
+    return this.connection.withRetry(async () => {
+      const client = this.connection.getQueueServiceClient();
 
-    return new Promise((resolve, reject) => {
-      const request: QueueServiceTypes.GetScheduleRequest = {
-        scheduleId,
-      };
+      return new Promise<ProtoSchedule.Schedule | undefined>((resolve, reject) => {
+        const request: QueueServiceTypes.GetScheduleRequest = {
+          scheduleId,
+        };
 
-      client.getSchedule(request, (error, response) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(response?.schedule);
-        }
+        client.getSchedule(request, (error, response) => {
+          if (error) {
+            reject(handleGrpcError(error));
+          } else {
+            resolve(response?.schedule);
+          }
+        });
       });
     });
   }
@@ -66,19 +70,21 @@ export class ScheduleClient {
    * List schedules
    */
   async listSchedules(prefix?: string): Promise<ProtoSchedule.Schedule[]> {
-    const client = this.connection.getQueueServiceClient();
+    return this.connection.withRetry(async () => {
+      const client = this.connection.getQueueServiceClient();
 
-    return new Promise((resolve, reject) => {
-      const request: QueueServiceTypes.ListSchedulesRequest = {
-        prefix: prefix || "",
-      };
+      return new Promise<ProtoSchedule.Schedule[]>((resolve, reject) => {
+        const request: QueueServiceTypes.ListSchedulesRequest = {
+          prefix: prefix || "",
+        };
 
-      client.listSchedules(request, (error, response) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(response?.schedules || []);
-        }
+        client.listSchedules(request, (error, response) => {
+          if (error) {
+            reject(handleGrpcError(error));
+          } else {
+            resolve(response?.schedules || []);
+          }
+        });
       });
     });
   }
@@ -89,19 +95,21 @@ export class ScheduleClient {
   async deleteSchedule(scheduleId: string): Promise<boolean> {
     validateRequired(scheduleId, "scheduleId");
 
-    const client = this.connection.getQueueServiceClient();
+    return this.connection.withRetry(async () => {
+      const client = this.connection.getQueueServiceClient();
 
-    return new Promise((resolve, reject) => {
-      const request: QueueServiceTypes.DeleteScheduleRequest = {
-        scheduleId,
-      };
+      return new Promise<boolean>((resolve, reject) => {
+        const request: QueueServiceTypes.DeleteScheduleRequest = {
+          scheduleId,
+        };
 
-      client.deleteSchedule(request, (error, response) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(response?.success || false);
-        }
+        client.deleteSchedule(request, (error, response) => {
+          if (error) {
+            reject(handleGrpcError(error));
+          } else {
+            resolve(response?.success || false);
+          }
+        });
       });
     });
   }
@@ -112,19 +120,21 @@ export class ScheduleClient {
   async pauseSchedule(scheduleId: string): Promise<boolean> {
     validateRequired(scheduleId, "scheduleId");
 
-    const client = this.connection.getQueueServiceClient();
+    return this.connection.withRetry(async () => {
+      const client = this.connection.getQueueServiceClient();
 
-    return new Promise((resolve, reject) => {
-      const request: QueueServiceTypes.PauseScheduleRequest = {
-        scheduleId,
-      };
+      return new Promise<boolean>((resolve, reject) => {
+        const request: QueueServiceTypes.PauseScheduleRequest = {
+          scheduleId,
+        };
 
-      client.pauseSchedule(request, (error, response) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(response?.success || false);
-        }
+        client.pauseSchedule(request, (error, response) => {
+          if (error) {
+            reject(handleGrpcError(error));
+          } else {
+            resolve(response?.success || false);
+          }
+        });
       });
     });
   }
@@ -135,19 +145,53 @@ export class ScheduleClient {
   async resumeSchedule(scheduleId: string): Promise<boolean> {
     validateRequired(scheduleId, "scheduleId");
 
-    const client = this.connection.getQueueServiceClient();
+    return this.connection.withRetry(async () => {
+      const client = this.connection.getQueueServiceClient();
 
-    return new Promise((resolve, reject) => {
-      const request: QueueServiceTypes.ResumeScheduleRequest = {
-        scheduleId,
-      };
+      return new Promise<boolean>((resolve, reject) => {
+        const request: QueueServiceTypes.ResumeScheduleRequest = {
+          scheduleId,
+        };
 
-      client.resumeSchedule(request, (error, response) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(response?.success || false);
-        }
+        client.resumeSchedule(request, (error, response) => {
+          if (error) {
+            reject(handleGrpcError(error));
+          } else {
+            resolve(response?.success || false);
+          }
+        });
+      });
+    });
+  }
+
+  /**
+   * Get schedule execution history
+   * 
+   * @param scheduleId - The schedule ID to get history for
+   * @param limit - Maximum number of history records to return (default: 100)
+   */
+  async getScheduleHistory(
+    scheduleId: string,
+    limit?: number,
+  ): Promise<ProtoSchedule.ScheduleHistory | undefined> {
+    validateRequired(scheduleId, "scheduleId");
+
+    return this.connection.withRetry(async () => {
+      const client = this.connection.getQueueServiceClient();
+
+      return new Promise<ProtoSchedule.ScheduleHistory | undefined>((resolve, reject) => {
+        const request: QueueServiceTypes.GetScheduleHistoryRequest = {
+          scheduleId,
+          limit: (limit || 100).toString(),
+        };
+
+        client.getScheduleHistory(request, (error, response) => {
+          if (error) {
+            reject(handleGrpcError(error));
+          } else {
+            resolve(response?.scheduleHistory);
+          }
+        });
       });
     });
   }

@@ -1,3 +1,4 @@
+import * as grpc from "@grpc/grpc-js";
 import { setTimeout as setTimeoutPromise } from "timers/promises";
 import { ChronoQueueError, ErrorCode } from "../types";
 
@@ -16,9 +17,10 @@ export interface RetryConfig {
 }
 
 /**
- * Check if error is retryable
+ * Check if error is retryable based on ChronoQueueError or gRPC error
  */
 export function isRetryableError(error: Error): boolean {
+  // Check ChronoQueueError codes
   if (error instanceof ChronoQueueError) {
     return (
       error.code === ErrorCode.UNAVAILABLE ||
@@ -26,6 +28,18 @@ export function isRetryableError(error: Error): boolean {
       error.code === ErrorCode.INTERNAL
     );
   }
+
+  // Check gRPC error codes directly
+  const grpcError = error as grpc.ServiceError;
+  if (grpcError.code !== undefined) {
+    return (
+      grpcError.code === grpc.status.UNAVAILABLE ||
+      grpcError.code === grpc.status.DEADLINE_EXCEEDED ||
+      grpcError.code === grpc.status.INTERNAL ||
+      grpcError.code === grpc.status.RESOURCE_EXHAUSTED
+    );
+  }
+
   return false;
 }
 

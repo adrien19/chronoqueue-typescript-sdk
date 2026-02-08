@@ -1,0 +1,20 @@
+{
+    "name": "@chronoqueue/examples",
+    "version": "0.1.0",
+    "description": "Example apps for ChronoQueue TypeScript SDK",
+    "main": "notification-service.ts",
+    "scripts": {
+        "start:notification": "ts-node notification-service.ts",
+        "start:worker": "ts-node worker.ts",
+        "start:long-publisher": "ts-node long-running-publisher.ts",
+        "start:long-worker": "ts-node long-running-worker.ts",
+        "start:lease-demo": "ts-node lease-policy-example.ts"
+    },
+    "dependencies": {
+        "@chronoqueue/client": "workspace:*"
+    },
+    "devDependencies": {
+        "ts-node": "^10.9.2",
+        "typescript": "^5.0.0"
+    }
+}

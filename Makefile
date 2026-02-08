@@ -40,9 +40,11 @@ help:
 	@echo "  $(GREEN)make gen-proto$(NC)       - Generate TypeScript code from proto files using ts-proto"
 	@echo "  $(GREEN)make build-proto$(NC)     - Build proto package"
 	@echo "  $(GREEN)make build-client$(NC)    - Build client package"
+	@echo "  $(GREEN)make build-mcp$(NC)       - Build MCP server package"
 	@echo "  $(GREEN)make build-all$(NC)       - Build all packages"
 	@echo "  $(GREEN)make test-proto$(NC)      - Run proto package tests"
 	@echo "  $(GREEN)make test-client$(NC)     - Run client package tests"
+	@echo "  $(GREEN)make test-mcp$(NC)        - Run MCP server package tests"
 	@echo "  $(GREEN)make test-all$(NC)        - Run all package tests"
 	@echo "  $(GREEN)make test-coverage$(NC)   - Run tests with coverage report"
 	@echo "  $(GREEN)make clean$(NC)           - Remove build artifacts and cache"
@@ -117,8 +119,18 @@ build-client:
 	@cd $(CLIENT_PKG) && $(TSC)
 	@echo "$(GREEN)Client package built successfully!$(NC)"
 
+# Build mcp package (if it exists)
+build-mcp:
+	@if [ -d "packages/mcp" ]; then \
+		echo "$(YELLOW)Building mcp package...$(NC)"; \
+		cd packages/mcp && $(TSC); \
+		echo "$(GREEN)mcp package built successfully!$(NC)"; \
+	else \
+		echo "$(YELLOW)mcp package not found, skipping build$(NC)"; \
+	fi
+
 # Build all packages
-build-all: build-proto build-client
+build-all: build-proto build-client build-mcp
 	@echo "$(GREEN)All packages built successfully!$(NC)"
 
 # Test proto package
@@ -137,8 +149,18 @@ test-client:
 		echo "$(YELLOW)Client package not yet implemented, skipping tests$(NC)"; \
 	fi
 
+# Test mcp package (if it exists)
+test-mcp:
+	@if [ -d "packages/mcp" ] && [ -f "packages/mcp/package.json" ]; then \
+		echo "$(YELLOW)Testing mcp package...$(NC)"; \
+		cd packages/mcp && $(PNPM) test; \
+		echo "$(GREEN)mcp tests passed!$(NC)"; \
+	else \
+		echo "$(YELLOW)mcp package not found or no tests defined, skipping tests$(NC)"; \
+	fi
+
 # Test all packages
-test-all: test-proto test-client
+test-all: test-proto test-client test-mcp
 	@echo "$(GREEN)All tests passed!$(NC)"
 
 # Test with coverage
@@ -149,6 +171,11 @@ test-coverage:
 		cd $(CLIENT_PKG) && $(PNPM) run test:coverage; \
 	else \
 		echo "$(YELLOW)Client package not yet implemented, skipping coverage$(NC)"; \
+	fi
+	@if [ -d "packages/mcp" ] && grep -q '"test:coverage"' "packages/mcp/package.json" 2>/dev/null; then \
+		cd packages/mcp && $(PNPM) run test:coverage; \
+	else \
+		echo "$(YELLOW)MCP package not found or no coverage script, skipping$(NC)"; \
 	fi
 	@echo "$(GREEN)Coverage reports generated!$(NC)"
 
@@ -187,6 +214,7 @@ clean:
 	@echo "$(YELLOW)Cleaning build artifacts and cache...$(NC)"
 	@rm -rf $(PROTO_PKG)/lib
 	@rm -rf $(CLIENT_PKG)/lib
+	@rm -rf packages/mcp/dist
 	@rm -rf coverage .nyc_output
 	@rm -rf .eslintcache
 	@rm -rf .tsbuildinfo

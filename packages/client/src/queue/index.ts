@@ -1,6 +1,6 @@
 import { Queue as ProtoQueue, QueueServiceTypes } from "@chronoqueue/proto";
 import { Connection } from "../connection";
-import { validateRequired } from "../utils/errors";
+import { handleGrpcError, validateRequired } from "../utils/errors";
 
 /**
  * Queue client for managing queues
@@ -9,7 +9,7 @@ export class QueueClient {
   constructor(
     // eslint-disable-next-line no-unused-vars
     private readonly connection: Connection,
-  ) {}
+  ) { }
 
   /**
    * Create a new queue
@@ -19,8 +19,6 @@ export class QueueClient {
     metadata?: ProtoQueue.QueueMetadata,
   ): Promise<boolean> {
     validateRequired(name, "name");
-
-    const client = this.connection.getQueueServiceClient();
 
     const metadataWithDefaults: ProtoQueue.QueueMetadata = {
       type: metadata?.type || ProtoQueue.QueueType.SIMPLE,
@@ -33,21 +31,26 @@ export class QueueClient {
       allowedContentTypes: metadata?.allowedContentTypes ?? [],
       schemaRequired: metadata?.schemaRequired ?? false,
       schemaId: metadata?.schemaId ?? "",
+      leasePolicy: metadata?.leasePolicy,
       ...metadata,
     };
 
-    return new Promise((resolve, reject) => {
-      const request: QueueServiceTypes.CreateQueueRequest = {
-        name,
-        metadata: metadataWithDefaults,
-      };
+    return this.connection.withRetry(async () => {
+      const client = this.connection.getQueueServiceClient();
 
-      client.createQueue(request, (error, response) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(response?.success || false);
-        }
+      return new Promise<boolean>((resolve, reject) => {
+        const request: QueueServiceTypes.CreateQueueRequest = {
+          name,
+          metadata: metadataWithDefaults,
+        };
+
+        client.createQueue(request, (error, response) => {
+          if (error) {
+            reject(handleGrpcError(error));
+          } else {
+            resolve(response?.success || false);
+          }
+        });
       });
     });
   }
@@ -58,19 +61,21 @@ export class QueueClient {
   async deleteQueue(name: string): Promise<boolean> {
     validateRequired(name, "name");
 
-    const client = this.connection.getQueueServiceClient();
+    return this.connection.withRetry(async () => {
+      const client = this.connection.getQueueServiceClient();
 
-    return new Promise((resolve, reject) => {
-      const request: QueueServiceTypes.DeleteQueueRequest = {
-        name,
-      };
+      return new Promise<boolean>((resolve, reject) => {
+        const request: QueueServiceTypes.DeleteQueueRequest = {
+          name,
+        };
 
-      client.deleteQueue(request, (error, response) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(response?.success || false);
-        }
+        client.deleteQueue(request, (error, response) => {
+          if (error) {
+            reject(handleGrpcError(error));
+          } else {
+            resolve(response?.success || false);
+          }
+        });
       });
     });
   }
@@ -83,19 +88,21 @@ export class QueueClient {
   ): Promise<QueueServiceTypes.GetQueueStateResponse> {
     validateRequired(queueName, "queueName");
 
-    const client = this.connection.getQueueServiceClient();
+    return this.connection.withRetry(async () => {
+      const client = this.connection.getQueueServiceClient();
 
-    return new Promise((resolve, reject) => {
-      const request: QueueServiceTypes.GetQueueStateRequest = {
-        queueName,
-      };
+      return new Promise<QueueServiceTypes.GetQueueStateResponse>((resolve, reject) => {
+        const request: QueueServiceTypes.GetQueueStateRequest = {
+          queueName,
+        };
 
-      client.getQueueState(request, (error, response) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(response);
-        }
+        client.getQueueState(request, (error, response) => {
+          if (error) {
+            reject(handleGrpcError(error));
+          } else {
+            resolve(response);
+          }
+        });
       });
     });
   }
@@ -104,19 +111,21 @@ export class QueueClient {
    * List queues
    */
   async listQueues(prefix?: string): Promise<ProtoQueue.Queue[]> {
-    const client = this.connection.getQueueServiceClient();
+    return this.connection.withRetry(async () => {
+      const client = this.connection.getQueueServiceClient();
 
-    return new Promise((resolve, reject) => {
-      const request: QueueServiceTypes.ListQueuesRequest = {
-        prefix: prefix || "",
-      };
+      return new Promise<ProtoQueue.Queue[]>((resolve, reject) => {
+        const request: QueueServiceTypes.ListQueuesRequest = {
+          prefix: prefix || "",
+        };
 
-      client.listQueues(request, (error, response) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(response?.queues || []);
-        }
+        client.listQueues(request, (error, response) => {
+          if (error) {
+            reject(handleGrpcError(error));
+          } else {
+            resolve(response?.queues || []);
+          }
+        });
       });
     });
   }
