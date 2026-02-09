@@ -35,6 +35,31 @@ describe("ChronoQueueClient", () => {
     it("should start disconnected", () => {
       expect(client.isConnected()).toBe(false);
     });
+
+    it("should accept optional workerId in config", () => {
+      const clientWithWorkerId = new ChronoQueueClient({
+        connection: {
+          address: "localhost:50051",
+        },
+        workerId: "worker-123",
+      });
+      expect(clientWithWorkerId.workerId).toBe("worker-123");
+    });
+
+    it("should pass workerId to MessageClient", () => {
+      const clientWithWorkerId = new ChronoQueueClient({
+        connection: {
+          address: "localhost:50051",
+        },
+        workerId: "worker-456",
+      });
+      expect(clientWithWorkerId.messages.getWorkerId()).toBe("worker-456");
+    });
+
+    it("should have undefined workerId when not provided", () => {
+      expect(client.workerId).toBeUndefined();
+      expect(client.messages.getWorkerId()).toBeUndefined();
+    });
   });
 
   describe("connection management", () => {
@@ -143,6 +168,15 @@ describe("MessageClient", () => {
       expect(messageClient).toBeInstanceOf(MessageClient);
     });
 
+    it("should accept optional workerId", () => {
+      const clientWithWorkerId = new MessageClient(connection, "worker-123");
+      expect(clientWithWorkerId.getWorkerId()).toBe("worker-123");
+    });
+
+    it("should have undefined workerId when not provided", () => {
+      expect(messageClient.getWorkerId()).toBeUndefined();
+    });
+
     it("should have postMessage method", () => {
       expect(typeof messageClient.postMessage).toBe("function");
     });
@@ -155,12 +189,58 @@ describe("MessageClient", () => {
       expect(typeof messageClient.acknowledgeMessage).toBe("function");
     });
 
+    it("should have cancelMessage method", () => {
+      expect(typeof messageClient.cancelMessage).toBe("function");
+    });
+
+    it("should have sendHeartbeat method", () => {
+      expect(typeof messageClient.sendHeartbeat).toBe("function");
+    });
+
     it("should have renewMessageLease method", () => {
       expect(typeof messageClient.renewMessageLease).toBe("function");
     });
 
     it("should have peekQueueMessages method", () => {
       expect(typeof messageClient.peekQueueMessages).toBe("function");
+    });
+
+    it("should have hasActiveHeartbeat method", () => {
+      expect(typeof messageClient.hasActiveHeartbeat).toBe("function");
+    });
+
+    it("should have stopAllHeartbeats method", () => {
+      expect(typeof messageClient.stopAllHeartbeats).toBe("function");
+    });
+
+    it("should have getHeartbeatHealth method", () => {
+      expect(typeof messageClient.getHeartbeatHealth).toBe("function");
+    });
+  });
+
+  describe("workerId management", () => {
+    it("should allow setting workerId after construction", () => {
+      expect(messageClient.getWorkerId()).toBeUndefined();
+      messageClient.setWorkerId("new-worker-id");
+      expect(messageClient.getWorkerId()).toBe("new-worker-id");
+    });
+  });
+
+  describe("heartbeat tracking", () => {
+    it("should return false for hasActiveHeartbeat when no heartbeat exists", () => {
+      expect(messageClient.hasActiveHeartbeat("non-existent-message")).toBe(
+        false,
+      );
+    });
+
+    it("should return undefined for getHeartbeatHealth when no heartbeat exists", () => {
+      expect(
+        messageClient.getHeartbeatHealth("non-existent-message"),
+      ).toBeUndefined();
+    });
+
+    it("should call stopAllHeartbeats without error when no heartbeats exist", () => {
+      expect(() => messageClient.stopAllHeartbeats()).not.toThrow();
     });
   });
 });

@@ -82,7 +82,8 @@
         "GitHub.copilot",
         "GitHub.copilot-chat",
         "humao.rest-client",
-        "ms-vscode.vscode-typescript-next"
+        "ms-vscode.vscode-typescript-next",
+        "DrBlury.protobuf-vsc"
       ]
     }
   },

@@ -56,15 +56,15 @@ fi
 
 echo "Redis is up and running."
 
-# Verify Node.js and npm versions
+# Verify Node.js and pnpm versions
 echo "Node.js version: $(node --version)"
-echo "npm version: $(npm --version)"
+echo "pnpm version: $(pnpm --version)"
 echo "TypeScript version: $(tsc --version)"
 
 # Install project dependencies if package.json exists
 if [ -f "package.json" ]; then
-    echo "Installing npm dependencies..."
-    npm install
+    echo "Installing pnpm dependencies..."
+    pnpm install
 fi
 
 echo "Post-create commands completed successfully."

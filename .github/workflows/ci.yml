@@ -203,6 +203,7 @@ jobs:
           name: build-artifacts
           path: |
             packages/*/lib/
+            packages/*/dist/
             packages/proto/src/generated/
           retention-days: 7
 

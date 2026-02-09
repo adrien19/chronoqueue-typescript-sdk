@@ -1,0 +1,30 @@
+{
+  "name": "trip-planner-worker",
+  "version": "1.0.0",
+  "description": "ChronoQueue-powered trip planning orchestration system",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "producer": "ts-node src/producer.ts",
+    "worker": "ts-node src/worker.ts",
+    "dev": "npm-run-all --parallel producer worker"
+  },
+  "keywords": [
+    "chronoqueue",
+    "trip-planner",
+    "orchestration",
+    "worker",
+    "task-queue"
+  ],
+  "author": "ChronoQueue Example",
+  "license": "MIT",
+  "dependencies": {
+    "@chronoqueue/client": "workspace:*",
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.0",
+    "npm-run-all": "^4.1.5"
+  }
+}

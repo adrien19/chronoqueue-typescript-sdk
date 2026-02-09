@@ -1,4 +1,39 @@
 import * as grpc from "@grpc/grpc-js";
+import type { Logger } from "../logger";
+
+/**
+ * Retry configuration for gRPC operations
+ */
+export interface RetryOptions {
+  /** Maximum number of retry attempts (default: 3) */
+  maxRetries?: number;
+
+  /** Base delay for exponential backoff in milliseconds (default: 100) */
+  baseDelay?: number;
+
+  /** Maximum delay cap in milliseconds (default: 10000) */
+  maxDelay?: number;
+
+  /** Whether to retry on retryable errors (default: true) */
+  enabled?: boolean;
+}
+
+/**
+ * Health check configuration
+ */
+export interface HealthCheckOptions {
+  /** Enable automatic health checks (default: false) */
+  enabled?: boolean;
+
+  /** Interval between health checks in milliseconds (default: 30000) */
+  intervalMs?: number;
+
+  /** Enable automatic reconnection on failure (default: true) */
+  autoReconnect?: boolean;
+
+  /** Callback when connection health changes */
+  onHealthChange?: (healthy: boolean, error?: Error) => void;
+}
 
 /**
  * Connection options for establishing a gRPC connection to ChronoQueue server
@@ -21,6 +56,12 @@ export interface ConnectionOptions {
 
   /** Base delay for exponential backoff in milliseconds (default: 100) */
   retryDelay?: number;
+
+  /** Retry configuration for gRPC operations */
+  retry?: RetryOptions;
+
+  /** Health check configuration */
+  healthCheck?: HealthCheckOptions;
 }
 
 /**
@@ -32,257 +73,14 @@ export interface ClientConfig {
 
   /** Default request timeout in milliseconds (default: 30000) */
   requestTimeout?: number;
-}
 
-/**
- * Options for queue creation
- */
-export interface CreateQueueOptions {
-  /** Queue name (required) */
-  name: string;
+  /** Optional stable identifier for this worker/consumer instance.
+   *  If provided, this workerId will be used in all message operations. */
+  workerId?: string;
 
-  /** Queue type (default: FIFO) */
-  type?: "FIFO" | "PRIORITY" | "DELAY";
-
-  /** Fairness policy for priority queues (default: STRICT) */
-  fairnessPolicy?: "STRICT" | "WEIGHTED_ROUND_ROBIN";
-
-  /** Message retention period in seconds (default: 86400 = 1 day) */
-  messageRetentionPeriod?: number;
-
-  /** Maximum message size in bytes (default: 262144 = 256KB) */
-  maxMessageSize?: number;
-
-  /** Maximum queue size (number of messages) */
-  maxQueueSize?: number;
-
-  /** Delivery attempt limit before DLQ (default: 3) */
-  deliveryAttemptLimit?: number;
-
-  /** Dead letter queue name */
-  deadLetterQueue?: string;
-
-  /** Enable deduplication */
-  enableDeduplication?: boolean;
-
-  /** Deduplication window in seconds */
-  deduplicationWindow?: number;
-
-  /** Initial queue state (default: ACTIVE) */
-  initialState?: "ACTIVE" | "PAUSED";
-}
-
-/**
- * Options for queue updates
- */
-export interface UpdateQueueOptions {
-  /** Queue name (required) */
-  name: string;
-
-  /** Message retention period in seconds */
-  messageRetentionPeriod?: number;
-
-  /** Maximum message size in bytes */
-  maxMessageSize?: number;
-
-  /** Maximum queue size (number of messages) */
-  maxQueueSize?: number;
-
-  /** Delivery attempt limit before DLQ */
-  deliveryAttemptLimit?: number;
-
-  /** Dead letter queue name */
-  deadLetterQueue?: string;
-
-  /** Enable deduplication */
-  enableDeduplication?: boolean;
-
-  /** Deduplication window in seconds */
-  deduplicationWindow?: number;
-}
-
-/**
- * Options for listing queues
- */
-export interface ListQueuesOptions {
-  /** Page size (default: 100) */
-  pageSize?: number;
-
-  /** Page token for pagination */
-  pageToken?: string;
-
-  /** Filter by queue type */
-  type?: "FIFO" | "PRIORITY" | "DELAY";
-
-  /** Filter by state */
-  state?: "ACTIVE" | "PAUSED";
-}
-
-/**
- * Options for publishing a message
- */
-export interface PublishMessageOptions {
-  /** Queue name (required) */
-  queueName: string;
-
-  /** Message payload (required) */
-  payload: Uint8Array | string;
-
-  /** Content type (e.g., 'application/json', 'text/plain') */
-  contentType?: string;
-
-  /** Message priority (0-255, higher = more important) */
-  priority?: number;
-
-  /** Delay before message becomes available (milliseconds) */
-  delayMs?: number;
-
-  /** Deduplication ID */
-  deduplicationId?: string;
-
-  /** Custom metadata */
-  metadata?: Record<string, string>;
-}
-
-/**
- * Options for publishing messages in batch
- */
-export interface PublishBatchOptions {
-  /** Queue name (required) */
-  queueName: string;
-
-  /** Array of messages to publish */
-  messages: Array<{
-    payload: Uint8Array | string;
-    contentType?: string;
-    priority?: number;
-    delayMs?: number;
-    deduplicationId?: string;
-    metadata?: Record<string, string>;
-  }>;
-}
-
-/**
- * Options for acknowledging a message
- */
-export interface AcknowledgeMessageOptions {
-  /** Queue name (required) */
-  queueName: string;
-
-  /** Message ID (required) */
-  messageId: string;
-
-  /** Receipt handle from receive operation (required) */
-  receiptHandle: string;
-}
-
-/**
- * Options for rejecting a message
- */
-export interface RejectMessageOptions {
-  /** Queue name (required) */
-  queueName: string;
-
-  /** Message ID (required) */
-  messageId: string;
-
-  /** Receipt handle from receive operation (required) */
-  receiptHandle: string;
-
-  /** Reason for rejection */
-  reason?: string;
-}
-
-/**
- * Options for requeuing a message
- */
-export interface RequeueMessageOptions {
-  /** Queue name (required) */
-  queueName: string;
-
-  /** Message ID (required) */
-  messageId: string;
-
-  /** Receipt handle from receive operation (required) */
-  receiptHandle: string;
-
-  /** New delay before message becomes available (milliseconds) */
-  delayMs?: number;
-}
-
-/**
- * Options for creating a schedule
- */
-export interface CreateScheduleOptions {
-  /** Schedule name (required) */
-  name: string;
-
-  /** Cron expression (required) */
-  cronExpression: string;
-
-  /** Target queue name (required) */
-  targetQueue: string;
-
-  /** Payload to publish (required) */
-  payload: Uint8Array | string;
-
-  /** Content type */
-  contentType?: string;
-
-  /** Timezone (default: UTC) */
-  timezone?: string;
-
-  /** Schedule start time */
-  startTime?: Date;
-
-  /** Schedule end time */
-  endTime?: Date;
-
-  /** Maximum number of executions */
-  maxExecutions?: number;
-
-  /** Initial state (default: ACTIVE) */
-  initialState?: "ACTIVE" | "PAUSED";
-}
-
-/**
- * Options for updating a schedule
- */
-export interface UpdateScheduleOptions {
-  /** Schedule name (required) */
-  name: string;
-
-  /** Cron expression */
-  cronExpression?: string;
-
-  /** Timezone */
-  timezone?: string;
-
-  /** Schedule start time */
-  startTime?: Date;
-
-  /** Schedule end time */
-  endTime?: Date;
-
-  /** Maximum number of executions */
-  maxExecutions?: number;
-}
-
-/**
- * Options for listing schedules
- */
-export interface ListSchedulesOptions {
-  /** Page size (default: 100) */
-  pageSize?: number;
-
-  /** Page token for pagination */
-  pageToken?: string;
-
-  /** Filter by state */
-  state?: "ACTIVE" | "PAUSED" | "COMPLETED";
-
-  /** Filter by target queue */
-  targetQueue?: string;
+  /** Optional logger instance for SDK logging. Defaults to ConsoleLogger with WARN level.
+   *  Set to SilentLogger to disable all logging. */
+  logger?: Logger;
 }
 
 /**
@@ -290,32 +88,19 @@ export interface ListSchedulesOptions {
  */
 export enum ErrorCode {
   // Client errors
-
-  // eslint-disable-next-line no-unused-vars
   INVALID_ARGUMENT = "INVALID_ARGUMENT",
-  // eslint-disable-next-line no-unused-vars
   NOT_FOUND = "NOT_FOUND",
-  // eslint-disable-next-line no-unused-vars
   ALREADY_EXISTS = "ALREADY_EXISTS",
-  // eslint-disable-next-line no-unused-vars
   PERMISSION_DENIED = "PERMISSION_DENIED",
-  // eslint-disable-next-line no-unused-vars
   RESOURCE_EXHAUSTED = "RESOURCE_EXHAUSTED",
 
   // Server errors
-
-  // eslint-disable-next-line no-unused-vars
   INTERNAL = "INTERNAL",
-  // eslint-disable-next-line no-unused-vars
   UNAVAILABLE = "UNAVAILABLE",
-  // eslint-disable-next-line no-unused-vars
   DEADLINE_EXCEEDED = "DEADLINE_EXCEEDED",
 
   // Connection errors
-
-  // eslint-disable-next-line no-unused-vars
   CONNECTION_FAILED = "CONNECTION_FAILED",
-  // eslint-disable-next-line no-unused-vars
   CONNECTION_TIMEOUT = "CONNECTION_TIMEOUT",
 }
 
@@ -324,10 +109,8 @@ export enum ErrorCode {
  */
 export class ChronoQueueError extends Error {
   constructor(
-    // eslint-disable-next-line no-unused-vars
     public code: ErrorCode,
     message: string,
-    // eslint-disable-next-line no-unused-vars
     public cause?: Error,
   ) {
     super(message);

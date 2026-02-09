@@ -1,6 +1,8 @@
 packages:
   - "packages/client"
   - "packages/proto"
+  - "packages/examples"
+  - "packages/mcp"
 
 # Only allow installing packages that are at least a day old
 minimumReleaseAge: 1440
