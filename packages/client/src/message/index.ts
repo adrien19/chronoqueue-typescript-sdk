@@ -695,11 +695,7 @@ export class MessageClient {
       return true;
     }
     // Check error message patterns
-    const fatalPatterns = [
-      /channel.*closed/i,
-      /connection.*closed/i,
-      /unavailable/i,
-    ];
+    const fatalPatterns = [/channel.*closed/i, /connection.*closed/i];
     const errorMessage = error.message || error.toString();
     return fatalPatterns.some((pattern) => pattern.test(errorMessage));
   }

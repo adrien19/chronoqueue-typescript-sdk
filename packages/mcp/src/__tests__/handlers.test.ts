@@ -19,18 +19,35 @@ describe('Tool Handlers', () => {
       },
       messages: {
         postMessage: vi.fn(),
+        postMessagesBulk: vi.fn(),
         getNextMessage: vi.fn(),
         peekQueueMessages: vi.fn(),
         acknowledgeMessage: vi.fn(),
         renewMessageLease: vi.fn(),
+        cancelMessage: vi.fn(),
       },
       schedules: {
         createSchedule: vi.fn(),
         listSchedules: vi.fn(),
+        getSchedule: vi.fn(),
         deleteSchedule: vi.fn(),
+        pauseSchedule: vi.fn(),
+        resumeSchedule: vi.fn(),
+        getScheduleHistory: vi.fn(),
       },
       schemas: {
         registerSchema: vi.fn(),
+        getSchema: vi.fn(),
+        listSchemas: vi.fn(),
+        deleteSchema: vi.fn(),
+        validatePayload: vi.fn(),
+      },
+      dlq: {
+        getDLQMessages: vi.fn(),
+        getDLQStats: vi.fn(),
+        requeueFromDLQ: vi.fn(),
+        deleteFromDLQ: vi.fn(),
+        purgeDLQ: vi.fn(),
       },
     };
   });
@@ -498,6 +515,159 @@ describe('Tool Handlers', () => {
       expect(mockClient.schedules.deleteSchedule).toHaveBeenCalledWith('old-schedule');
       expect(result).toContain('deleted successfully');
     });
+
+    it('should handle get_schedule', async () => {
+      mockClient.schedules.getSchedule.mockResolvedValue({
+        scheduleId: 'my-schedule',
+        metadata: {
+          queueName: 'tasks',
+          cronSchedule: '0 9 * * *',
+          state: 0,
+          createdAt: new Date('2026-01-01'),
+          nextRun: new Date('2026-01-02T09:00:00Z'),
+          lastRun: new Date('2026-01-01T09:00:00Z'),
+        },
+      });
+
+      const result = await handleToolCall(
+        'get_schedule',
+        {
+          schedule_id: 'my-schedule',
+        },
+        mockClient
+      );
+
+      expect(mockClient.schedules.getSchedule).toHaveBeenCalledWith('my-schedule');
+      expect(result).toContain('Schedule: my-schedule');
+      expect(result).toContain('Queue: tasks');
+    });
+
+    it('should handle get_schedule with calendar schedule', async () => {
+      mockClient.schedules.getSchedule.mockResolvedValue({
+        scheduleId: 'calendar-schedule',
+        metadata: {
+          queueName: 'tasks',
+          calendarSchedule: {
+            type: 1,
+            timezone: 'America/New_York',
+          },
+          state: 0,
+          createdAt: new Date('2026-01-01'),
+        },
+      });
+
+      const result = await handleToolCall(
+        'get_schedule',
+        {
+          schedule_id: 'calendar-schedule',
+        },
+        mockClient
+      );
+
+      expect(result).toContain('Type: Calendar');
+      expect(result).toContain('Timezone: America/New_York');
+    });
+
+    it('should handle get_schedule when not found', async () => {
+      mockClient.schedules.getSchedule.mockResolvedValue(null);
+
+      const result = await handleToolCall(
+        'get_schedule',
+        {
+          schedule_id: 'nonexistent',
+        },
+        mockClient
+      );
+
+      expect(result).toContain('not found');
+    });
+
+    it('should handle pause_schedule', async () => {
+      mockClient.schedules.pauseSchedule.mockResolvedValue({ success: true });
+
+      const result = await handleToolCall(
+        'pause_schedule',
+        {
+          schedule_id: 'my-schedule',
+        },
+        mockClient
+      );
+
+      expect(mockClient.schedules.pauseSchedule).toHaveBeenCalledWith('my-schedule');
+      expect(result).toContain('paused successfully');
+    });
+
+    it('should handle resume_schedule', async () => {
+      mockClient.schedules.resumeSchedule.mockResolvedValue({ success: true });
+
+      const result = await handleToolCall(
+        'resume_schedule',
+        {
+          schedule_id: 'my-schedule',
+        },
+        mockClient
+      );
+
+      expect(mockClient.schedules.resumeSchedule).toHaveBeenCalledWith('my-schedule');
+      expect(result).toContain('resumed successfully');
+    });
+
+    it('should handle get_schedule_history', async () => {
+      mockClient.schedules.getScheduleHistory.mockResolvedValue({
+        scheduleId: 'my-schedule',
+        messages: [{ messageId: 'msg-1' }, { messageId: 'msg-2' }],
+        nextRun: new Date('2026-01-02T09:00:00Z'),
+        lastRun: new Date('2026-01-01T09:00:00Z'),
+        createdAt: new Date('2026-01-01'),
+        updatedAt: new Date('2026-01-01T09:00:00Z'),
+      });
+
+      const result = await handleToolCall(
+        'get_schedule_history',
+        {
+          schedule_id: 'my-schedule',
+          limit: 50,
+        },
+        mockClient
+      );
+
+      expect(mockClient.schedules.getScheduleHistory).toHaveBeenCalledWith('my-schedule', 50);
+      expect(result).toContain('Schedule History');
+      expect(result).toContain('msg-1');
+    });
+
+    it('should handle get_schedule_history when not found', async () => {
+      mockClient.schedules.getScheduleHistory.mockResolvedValue(null);
+
+      const result = await handleToolCall(
+        'get_schedule_history',
+        {
+          schedule_id: 'nonexistent',
+        },
+        mockClient
+      );
+
+      expect(result).toContain('No history found');
+    });
+
+    it('should handle get_schedule_history with many messages', async () => {
+      // Create more than 10 messages to test the truncation logic
+      const messages = Array.from({ length: 15 }, (_, i) => ({ messageId: `msg-${i + 1}` }));
+      mockClient.schedules.getScheduleHistory.mockResolvedValue({
+        scheduleId: 'my-schedule',
+        messages,
+      });
+
+      const result = await handleToolCall(
+        'get_schedule_history',
+        {
+          schedule_id: 'my-schedule',
+        },
+        mockClient
+      );
+
+      expect(result).toContain('and 5 more');
+    });
   });
 
   describe('Schema Operations', () => {
@@ -529,6 +699,363 @@ describe('Tool Handlers', () => {
       );
       expect(result).toContain('✓ Schema registered successfully');
       expect(result).toContain('user.profile.v1');
+    });
+
+    it('should handle get_schema', async () => {
+      mockClient.schemas.getSchema.mockResolvedValue({
+        schemaId: 'user.profile.v1',
+        version: 2,
+        name: 'User Profile',
+        contentType: 'json-schema',
+        description: 'Schema for user profiles',
+        content: '{"type":"object","properties":{"name":{"type":"string"}}}',
+      });
+
+      const result = await handleToolCall(
+        'get_schema',
+        {
+          schema_id: 'user.profile.v1',
+          version: 2,
+        },
+        mockClient
+      );
+
+      expect(mockClient.schemas.getSchema).toHaveBeenCalledWith('user.profile.v1', 2);
+      expect(result).toContain('📋 Schema: user.profile.v1');
+      expect(result).toContain('Version: 2');
+      expect(result).toContain('Name: User Profile');
+    });
+
+    it('should handle get_schema when not found', async () => {
+      mockClient.schemas.getSchema.mockResolvedValue(null);
+
+      const result = await handleToolCall(
+        'get_schema',
+        {
+          schema_id: 'nonexistent.schema',
+        },
+        mockClient
+      );
+
+      expect(result).toContain('not found');
+    });
+
+    it('should handle list_schemas', async () => {
+      mockClient.schemas.listSchemas.mockResolvedValue([
+        {
+          schemaId: 'user.profile.v1',
+          name: 'User Profile',
+          latestVersion: 2,
+          versionCount: 2,
+          description: 'User profile schema',
+          isActive: true,
+        },
+        {
+          schemaId: 'order.item.v1',
+          name: 'Order Item',
+          latestVersion: 1,
+          versionCount: 1,
+          isActive: true,
+        },
+      ]);
+
+      const result = await handleToolCall(
+        'list_schemas',
+        {
+          prefix: 'user',
+        },
+        mockClient
+      );
+
+      expect(mockClient.schemas.listSchemas).toHaveBeenCalledWith(
+        expect.objectContaining({
+          prefix: 'user',
+        })
+      );
+      expect(result).toContain('📋 Schemas (2 total)');
+      expect(result).toContain('user.profile.v1');
+    });
+
+    it('should handle list_schemas when empty', async () => {
+      mockClient.schemas.listSchemas.mockResolvedValue([]);
+
+      const result = await handleToolCall('list_schemas', {}, mockClient);
+
+      expect(result).toContain('No schemas found');
+    });
+
+    it('should handle delete_schema', async () => {
+      mockClient.schemas.deleteSchema.mockResolvedValue({ success: true });
+
+      const result = await handleToolCall(
+        'delete_schema',
+        {
+          schema_id: 'old.schema.v1',
+          version: 1,
+        },
+        mockClient
+      );
+
+      expect(mockClient.schemas.deleteSchema).toHaveBeenCalledWith('old.schema.v1', 1);
+      expect(result).toContain('✓ Schema deleted successfully');
+      expect(result).toContain('old.schema.v1');
+    });
+
+    it('should handle validate_payload with valid payload', async () => {
+      mockClient.schemas.validatePayload.mockResolvedValue({
+        schemaId: 'user.profile.v1',
+        schemaVersion: 1,
+        valid: true,
+        errors: [],
+      });
+
+      const result = await handleToolCall(
+        'validate_payload',
+        {
+          schema_id: 'user.profile.v1',
+          payload: '{"name":"John"}',
+        },
+        mockClient
+      );
+
+      expect(mockClient.schemas.validatePayload).toHaveBeenCalledWith(
+        'user.profile.v1',
+        '{"name":"John"}',
+        0
+      );
+      expect(result).toContain('📋 Validation Result');
+      expect(result).toContain('Valid: ✅ Yes');
+    });
+
+    it('should handle validate_payload with invalid payload', async () => {
+      mockClient.schemas.validatePayload.mockResolvedValue({
+        schemaId: 'user.profile.v1',
+        schemaVersion: 1,
+        valid: false,
+        errors: [
+          {
+            field: 'name',
+            errorCode: 'required',
+            message: 'name is required',
+            details: { expectedType: 'string' },
+          },
+        ],
+      });
+
+      const result = await handleToolCall(
+        'validate_payload',
+        {
+          schema_id: 'user.profile.v1',
+          payload: '{}',
+          version: 1,
+        },
+        mockClient
+      );
+
+      expect(result).toContain('Valid: ❌ No');
+      expect(result).toContain('Errors (1)');
+      expect(result).toContain('Field: name');
+      expect(result).toContain('Code: required');
+    });
+  });
+
+  describe('DLQ Operations', () => {
+    it('should handle get_dlq_messages', async () => {
+      mockClient.dlq.getDLQMessages.mockResolvedValue([
+        {
+          messageId: 'msg-1',
+          payload: { task: 'failed' },
+          originalQueue: 'tasks',
+          failureReason: 'Timeout',
+          failedAt: new Date('2026-01-01'),
+          attempts: 3,
+        },
+      ]);
+
+      const result = await handleToolCall(
+        'get_dlq_messages',
+        {
+          dlq_name: 'tasks-dlq',
+          limit: 10,
+        },
+        mockClient
+      );
+
+      expect(mockClient.dlq.getDLQMessages).toHaveBeenCalledWith('tasks-dlq', 10);
+      expect(result).toContain('DLQ Messages');
+      expect(result).toContain('msg-1');
+    });
+
+    it('should handle get_dlq_messages when empty', async () => {
+      mockClient.dlq.getDLQMessages.mockResolvedValue([]);
+
+      const result = await handleToolCall(
+        'get_dlq_messages',
+        {
+          dlq_name: 'empty-dlq',
+        },
+        mockClient
+      );
+
+      expect(result).toContain('No messages in DLQ');
+    });
+
+    it('should handle get_dlq_stats', async () => {
+      mockClient.dlq.getDLQStats.mockResolvedValue({
+        name: 'tasks-dlq',
+        messageCount: 42,
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-15T12:00:00Z',
+      });
+
+      const result = await handleToolCall(
+        'get_dlq_stats',
+        {
+          dlq_name: 'tasks-dlq',
+        },
+        mockClient
+      );
+
+      expect(mockClient.dlq.getDLQStats).toHaveBeenCalledWith('tasks-dlq');
+      expect(result).toContain('📊 DLQ Statistics');
+      expect(result).toContain('Message Count: 42');
+    });
+
+    it('should handle requeue_from_dlq', async () => {
+      mockClient.dlq.requeueFromDLQ.mockResolvedValue({
+        success: true,
+        messageId: 'msg-1',
+        targetQueue: 'tasks',
+      });
+
+      const result = await handleToolCall(
+        'requeue_from_dlq',
+        {
+          dlq_name: 'tasks-dlq',
+          message_id: 'msg-1',
+          target_queue: 'tasks',
+        },
+        mockClient
+      );
+
+      expect(mockClient.dlq.requeueFromDLQ).toHaveBeenCalledWith('tasks-dlq', 'msg-1', 'tasks');
+      expect(result).toContain('📤 Requeue Results');
+      expect(result).toContain('msg-1');
+    });
+
+    it('should handle delete_from_dlq', async () => {
+      mockClient.dlq.deleteFromDLQ.mockResolvedValue({ success: true });
+
+      const result = await handleToolCall(
+        'delete_from_dlq',
+        {
+          dlq_name: 'tasks-dlq',
+          message_id: 'msg-1',
+        },
+        mockClient
+      );
+
+      expect(mockClient.dlq.deleteFromDLQ).toHaveBeenCalledWith('tasks-dlq', 'msg-1');
+      expect(result).toContain('🗑️  Delete Results');
+      expect(result).toContain('msg-1');
+    });
+
+    it('should handle purge_dlq', async () => {
+      mockClient.dlq.purgeDLQ.mockResolvedValue({ success: true });
+
+      const result = await handleToolCall(
+        'purge_dlq',
+        {
+          dlq_name: 'tasks-dlq',
+        },
+        mockClient
+      );
+
+      expect(mockClient.dlq.purgeDLQ).toHaveBeenCalledWith('tasks-dlq');
+      expect(result).toContain('purged successfully');
+    });
+
+    it('should handle get_dlq_messages with payload data', async () => {
+      mockClient.dlq.getDLQMessages.mockResolvedValue([
+        {
+          messageId: 'msg-1',
+          metadata: {
+            priority: 5,
+            maxAttempts: 3,
+            attemptsLeft: 0,
+            payload: {
+              data: Buffer.from(JSON.stringify({ task: 'process' })),
+            },
+          },
+        },
+      ]);
+
+      const result = await handleToolCall(
+        'get_dlq_messages',
+        {
+          dlq_name: 'tasks-dlq',
+        },
+        mockClient
+      );
+
+      expect(result).toContain('Priority: 5');
+      expect(result).toContain('Attempts: 3/3');
+      expect(result).toContain('Payload:');
+    });
+
+    it('should handle get_dlq_messages with non-JSON payload', async () => {
+      mockClient.dlq.getDLQMessages.mockResolvedValue([
+        {
+          messageId: 'msg-1',
+          metadata: {
+            payload: {
+              data: Buffer.from('plain text data'),
+            },
+          },
+        },
+      ]);
+
+      const result = await handleToolCall(
+        'get_dlq_messages',
+        {
+          dlq_name: 'tasks-dlq',
+        },
+        mockClient
+      );
+
+      expect(result).toContain('plain text data');
+    });
+
+    it('should handle requeue_from_dlq with error', async () => {
+      mockClient.dlq.requeueFromDLQ.mockRejectedValue(new Error('Message not found'));
+
+      const result = await handleToolCall(
+        'requeue_from_dlq',
+        {
+          dlq_name: 'tasks-dlq',
+          message_id: 'nonexistent',
+        },
+        mockClient
+      );
+
+      expect(result).toContain('✗');
+      expect(result).toContain('Message not found');
+    });
+
+    it('should handle delete_from_dlq with error', async () => {
+      mockClient.dlq.deleteFromDLQ.mockRejectedValue(new Error('Permission denied'));
+
+      const result = await handleToolCall(
+        'delete_from_dlq',
+        {
+          dlq_name: 'tasks-dlq',
+          message_id: 'msg-1',
+        },
+        mockClient
+      );
+
+      expect(result).toContain('✗');
+      expect(result).toContain('Permission denied');
     });
   });
 

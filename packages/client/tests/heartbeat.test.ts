@@ -280,7 +280,7 @@ describe("MessageClient Heartbeat Failure Handling", () => {
   });
 
   describe("Fatal error classification", () => {
-    it("should stop heartbeat immediately on UNAVAILABLE error (code 14)", async () => {
+    it("should treat UNAVAILABLE error (code 14) as transient and retry", async () => {
       jest.useFakeTimers();
 
       mockClient.setHandler("getNextMessage", (_req: any, cb: any) => {
@@ -306,21 +306,25 @@ describe("MessageClient Heartbeat Failure Handling", () => {
 
       expect(messageClient.hasActiveHeartbeat("test-msg-5")).toBe(true);
 
-      // First heartbeat with fatal error
+      // First heartbeat with UNAVAILABLE - should be treated as transient
       jest.advanceTimersByTime(1000);
 
-      // Should stop immediately after first fatal error
-      expect(messageClient.hasActiveHeartbeat("test-msg-5")).toBe(false);
+      // Should still be active after first transient error
+      expect(messageClient.hasActiveHeartbeat("test-msg-5")).toBe(true);
 
-      // Verify warning was logged with "fatal error"
-      const warnLogs = mockLogger.calls.warn;
-      expect(
-        warnLogs.some(
-          (args) =>
-            args[0]?.includes?.("Stopping heartbeat") &&
-            args[0]?.includes?.("fatal error"),
-        ),
-      ).toBe(true);
+      // Verify failure count incremented
+      let health = messageClient.getHeartbeatHealth("test-msg-5");
+      expect(health?.consecutiveFailures).toBe(1);
+
+      // Second failure
+      jest.advanceTimersByTime(1000);
+      expect(messageClient.hasActiveHeartbeat("test-msg-5")).toBe(true);
+      health = messageClient.getHeartbeatHealth("test-msg-5");
+      expect(health?.consecutiveFailures).toBe(2);
+
+      // Third failure - should stop after max consecutive failures
+      jest.advanceTimersByTime(1000);
+      expect(messageClient.hasActiveHeartbeat("test-msg-5")).toBe(false);
     });
 
     it("should stop heartbeat immediately on CANCELLED error (code 1)", async () => {
