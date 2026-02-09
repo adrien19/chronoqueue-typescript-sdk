@@ -685,22 +685,21 @@ export class MessageClient {
   private isFatalHeartbeatError(error: any): boolean {
     // gRPC error codes that indicate connection failure
     const fatalGrpcCodes = [
-      14, // UNAVAILABLE - server down/unreachable
       1, // CANCELLED - connection closed
       13, // INTERNAL - server internal error
+      5, // NOT_FOUND - message/queue no longer exists
+      7, // PERMISSION_DENIED - auth failure
+      12, // UNIMPLEMENTED - server doesn't support heartbeat
     ];
-
     if (error.code && fatalGrpcCodes.includes(error.code)) {
       return true;
     }
-
     // Check error message patterns
     const fatalPatterns = [
       /channel.*closed/i,
       /connection.*closed/i,
       /unavailable/i,
     ];
-
     const errorMessage = error.message || error.toString();
     return fatalPatterns.some((pattern) => pattern.test(errorMessage));
   }
