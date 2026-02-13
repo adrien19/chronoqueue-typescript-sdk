@@ -83,7 +83,7 @@ jobs:
             TAG_NAME=${GITHUB_REF#refs/tags/}
             # Extract version by removing package-specific suffixes
             # e.g., v0.2.1-proto-release -> v0.2.1
-            VERSION=$(echo "$TAG_NAME" | sed 's/-proto-release$//' | sed 's/-proto-beta$//' | sed 's/-client-release$//' | sed 's/-client-beta$//' | sed 's/-mcp-release$//' | sed 's/-mcp-beta$//')
+            VERSION=$(echo "$TAG_NAME" | sed -E 's/-(proto|client|mcp)-(release|beta)$//')
           else
             VERSION=$(node -p "require('./packages/proto/package.json').version")
           fi
@@ -192,7 +192,7 @@ jobs:
             npm install @chronoqueue/proto@${{ needs.validate.outputs.version }}
             ```
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(github.ref, '-beta') }}
 
   publish-client:
     name: Publish Client Package
@@ -261,7 +261,7 @@ jobs:
             npm install @chronoqueue/client@${{ needs.validate.outputs.version }}
             ```
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(github.ref, '-beta') }}
 
   publish-mcp:
     name: Publish MCP Server Package
@@ -342,7 +342,7 @@ jobs:
             }
             ```
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(github.ref, '-beta') }}
 
   release-success:
     name: Release Success
