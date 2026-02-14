@@ -3,8 +3,12 @@ name: Release
 on:
   push:
     tags:
-      - "*-release"
-      - "*-beta"
+      - "*-proto-release"
+      - "*-proto-beta"
+      - "*-client-release"
+      - "*-client-beta"
+      - "*-mcp-release"
+      - "*-mcp-beta"
   workflow_dispatch:
     inputs:
       package:
@@ -77,8 +81,9 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "push" ]; then
             TAG_NAME=${GITHUB_REF#refs/tags/}
-            # Extract version by removing -release or -beta suffix
-            VERSION=$(echo "$TAG_NAME" | sed 's/-release$//' | sed 's/-beta$//')
+            # Extract version by removing package-specific suffixes
+            # e.g., v0.2.1-proto-release -> v0.2.1
+            VERSION=$(echo "$TAG_NAME" | sed -E 's/-(proto|client|mcp)-(release|beta)$//')
           else
             VERSION=$(node -p "require('./packages/proto/package.json').version")
           fi
@@ -91,7 +96,18 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             PACKAGES="${{ github.event.inputs.package }}"
           else
-            PACKAGES="all"
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+            # Determine package from tag name
+            if [[ "$TAG_NAME" == *-proto-* ]]; then
+              PACKAGES="proto"
+            elif [[ "$TAG_NAME" == *-client-* ]]; then
+              PACKAGES="client"
+            elif [[ "$TAG_NAME" == *-mcp-* ]]; then
+              PACKAGES="mcp"
+            else
+              echo "Error: Invalid tag format. Expected format: vX.Y.Z-{proto,client,mcp}-{release,beta}"
+              exit 1
+            fi
           fi
           echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
           echo "Packages: $PACKAGES"
@@ -176,7 +192,7 @@ jobs:
             npm install @chronoqueue/proto@${{ needs.validate.outputs.version }}
             ```
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(github.ref, '-beta') }}
 
   publish-client:
     name: Publish Client Package
@@ -245,7 +261,7 @@ jobs:
             npm install @chronoqueue/client@${{ needs.validate.outputs.version }}
             ```
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(github.ref, '-beta') }}
 
   publish-mcp:
     name: Publish MCP Server Package
@@ -326,7 +342,7 @@ jobs:
             }
             ```
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(github.ref, '-beta') }}
 
   release-success:
     name: Release Success

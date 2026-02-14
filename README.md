@@ -328,17 +328,37 @@ Current test coverage (**225 tests total**):
 
 ### Automated Releases
 
-Push a tag to trigger automatic publishing:
+Each package has its own release tag format. Push a package-specific tag to trigger automatic publishing:
 
 ```bash
-# Production release
-git tag v1.0.0-release
-git push origin v1.0.0-release
+# Proto package releases
+git tag v1.0.0-proto-release    # Published to npm with 'latest' tag
+git push origin v1.0.0-proto-release
 
-# Beta release
-git tag v1.0.0-beta
-git push origin v1.0.0-beta
+git tag v1.0.0-proto-beta       # Published to npm with 'beta' tag
+git push origin v1.0.0-proto-beta
+
+# Client package releases
+git tag v1.0.0-client-release   # Published to npm with 'latest' tag
+git push origin v1.0.0-client-release
+
+git tag v1.0.0-client-beta      # Published to npm with 'beta' tag
+git push origin v1.0.0-client-beta
+
+# MCP server package releases
+git tag v1.0.0-mcp-release      # Published to npm with 'latest' tag
+git push origin v1.0.0-mcp-release
+
+git tag v1.0.0-mcp-beta         # Published to npm with 'beta' tag
+git push origin v1.0.0-mcp-beta
 ```
+
+**Tag Format Rules:**
+
+- Tags must follow the pattern: `vX.Y.Z-{proto,client,mcp}-{release,beta}`
+- `-release` suffix publishes to npm with the `latest` tag
+- `-beta` suffix publishes to npm with the `beta` tag
+- Each package gets its own GitHub Release entry
 
 ### Manual Release
 
