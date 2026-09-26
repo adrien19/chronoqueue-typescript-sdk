@@ -1,7 +1,7 @@
 {
   "name": "@chronoqueue/client",
   "version": "0.1.0",
-  "description": "ChronoQueue SDK Client sub-package",
+  "description": "Deprecated ChronoQueue client SDK. This package will not receive further updates; migrate to @nzovu/client from the nzovu-sdk-typescript repository.",
   "main": "lib/index.js",
   "types": "./lib/index.d.ts",
   "exports": {

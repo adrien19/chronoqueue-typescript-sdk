@@ -1,5 +1,10 @@
 # @chronoqueue/proto
 
+> [!WARNING]
+> `@chronoqueue/proto` is deprecated and will not receive further updates.
+> Migrate to `@nzovu/proto` in [nzovu-sdk-typescript](https://github.com/adrien19/nzovu-sdk-typescript) and regenerate clients against the [Nzovu service](https://github.com/adrien19/nzovu).
+> The replacement packages are currently documented as source builds in the Nzovu SDK repository.
+
 [![npm version](https://badge.fury.io/js/@chronoqueue%2Fproto.svg)](https://www.npmjs.com/package/@chronoqueue/proto)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 

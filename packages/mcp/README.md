@@ -1,5 +1,10 @@
 # ChronoQueue MCP Server
 
+> [!WARNING]
+> `@chronoqueue/mcp-server` is deprecated and will not receive further updates.
+> Migrate to `@nzovu/mcp-server` and the `nzovu-mcp` executable in [nzovu-sdk-typescript](https://github.com/adrien19/nzovu-sdk-typescript), backed by the [Nzovu service](https://github.com/adrien19/nzovu).
+> The replacement packages are currently documented as source builds in the Nzovu SDK repository.
+
 Integrate ChronoQueue with AI assistants via the Model Context Protocol (MCP).
 
 ## What is this?

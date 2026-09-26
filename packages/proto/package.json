@@ -1,7 +1,7 @@
 {
   "name": "@chronoqueue/proto",
   "version": "0.1.0",
-  "description": "ChronoQueue SDK compiled protobuf definitions",
+  "description": "Deprecated ChronoQueue protobuf package. This package will not receive further updates; migrate to @nzovu/proto from the nzovu-sdk-typescript repository.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "exports": {

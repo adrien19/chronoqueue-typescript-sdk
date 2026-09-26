@@ -1,7 +1,7 @@
 {
   "name": "@chronoqueue/mcp-server",
   "version": "0.1.0",
-  "description": "ChronoQueue MCP Server - Integrate ChronoQueue with AI assistants via Model Context Protocol",
+  "description": "Deprecated ChronoQueue MCP server. This package will not receive further updates; migrate to @nzovu/mcp-server and the nzovu-mcp executable from the nzovu-sdk-typescript repository.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
