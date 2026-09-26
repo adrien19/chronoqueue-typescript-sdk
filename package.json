@@ -1,5 +1,6 @@
 {
   "name": "chronoqueue-typescript-sdk",
+  "description": "Deprecated ChronoQueue TypeScript monorepo. This project will not receive further updates; migrate to the Nzovu service and the nzovu-sdk-typescript repository.",
   "type": "module",
   "private": true,
   "keywords": [

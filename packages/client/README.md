@@ -1,5 +1,10 @@
 # @chronoqueue/client
 
+> [!WARNING]
+> `@chronoqueue/client` is deprecated and will not receive further updates.
+> Migrate to `@nzovu/client` in [nzovu-sdk-typescript](https://github.com/adrien19/nzovu-sdk-typescript) and use the [Nzovu service](https://github.com/adrien19/nzovu) for new deployments.
+> The replacement packages are currently documented as source builds in the Nzovu SDK repository.
+
 TypeScript/Node.js client SDK for ChronoQueue – a distributed task queue system with priorities, delayed execution, scheduled tasks, and schema validation.
 
 ## Installation

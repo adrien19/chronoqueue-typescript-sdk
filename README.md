@@ -1,9 +1,30 @@
 # ChronoQueue TypeScript SDK
 
+> [!WARNING]
+> This repository and all packages published from it are deprecated and will not receive further updates.
+> ChronoQueue is migrating to [Nzovu](https://github.com/adrien19/nzovu), and the TypeScript SDK/MCP replacements live in [nzovu-sdk-typescript](https://github.com/adrien19/nzovu-sdk-typescript).
+> Use `@nzovu/client`, `@nzovu/proto`, and `@nzovu/mcp-server` as the replacement packages. Until those packages are published, follow the source-build instructions in the Nzovu SDK repository.
+
 [![CI](https://github.com/adrien19/chronoqueue-typescript-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/adrien19/chronoqueue-typescript-sdk/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 A TypeScript SDK for interacting with ChronoQueue, a distributed task scheduling and queue management system.
+
+## Deprecation Notice
+
+ChronoQueue is migrating to the [Nzovu service](https://github.com/adrien19/nzovu), and this repository is frozen.
+
+Recommended replacements for the packages in this repository:
+
+| Current package/project | Replacement |
+| --- | --- |
+| ChronoQueue service | [Nzovu](https://github.com/adrien19/nzovu) |
+| `@chronoqueue/client` | `@nzovu/client` in [nzovu-sdk-typescript](https://github.com/adrien19/nzovu-sdk-typescript) |
+| `@chronoqueue/proto` | `@nzovu/proto` in [nzovu-sdk-typescript](https://github.com/adrien19/nzovu-sdk-typescript) |
+| `@chronoqueue/mcp-server` | `@nzovu/mcp-server` and the `nzovu-mcp` executable in [nzovu-sdk-typescript](https://github.com/adrien19/nzovu-sdk-typescript) |
+| `packages/examples` | The examples in [nzovu-sdk-typescript](https://github.com/adrien19/nzovu-sdk-typescript) and the service examples in [nzovu](https://github.com/adrien19/nzovu) |
+
+The Nzovu replacement repositories currently document source builds first. If you are starting a new integration, use Nzovu instead of ChronoQueue.
 
 ## 📦 Packages
 
@@ -13,6 +34,8 @@ This is a monorepo containing the following packages:
 - **[@chronoqueue/client](./packages/client)** – High-level TypeScript/Node.js client SDK for interacting with ChronoQueue (queues, messages, schedules, schemas, and more)
 - **[@chronoqueue/mcp-server](./packages/mcp)** – Model Context Protocol (MCP) server for integrating ChronoQueue with AI assistants (28 tools)
 - **[Examples](./packages/examples)** – Standalone scripts and full project examples (agent-worker, trip-planner-worker, and more)
+
+All of the packages above are deprecated and retained only for existing ChronoQueue users during migration.
 
 ## 🚀 Quick Start
 
